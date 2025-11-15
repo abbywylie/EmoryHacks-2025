@@ -82,6 +82,9 @@ document.addEventListener("DOMContentLoaded", () => {
             </p>
             ${skillsHTML}
         `;
+
+            attachSkillLinkListeners();
+
     }
 
     function showReadingContent() {
@@ -120,7 +123,45 @@ document.addEventListener("DOMContentLoaded", () => {
             </p>
             ${skillsHTML}
         `;
+
+            attachSkillLinkListeners();
+
     }
+
+    function attachSkillLinkListeners() {
+    console.log("Attaching skill link listeners..."); // DEBUG
+    const skillLinks = document.querySelectorAll('.skill-link');
+    console.log("Found", skillLinks.length, "skill links"); // DEBUG
+    
+    skillLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            console.log("Link clicked!"); // DEBUG
+            
+            // Get the skill name from the parent skill-item
+            const skillItem = link.closest('.skill-item');
+            const skillName = skillItem.querySelector('.skill-name').textContent;
+            console.log("Skill name:", skillName); // DEBUG
+            
+            // Store the skill name in localStorage for the next page
+            localStorage.setItem('selectedSkill', skillName);
+            console.log("Stored in localStorage, now redirecting..."); // DEBUG
+            
+            // Navigate to the questions page
+            window.location.href = 'skill-questions.html';
+        });
+    });
+}
+
+const activeTab = document.querySelector(".tab-btn.active");
+    if (activeTab) {
+        if (activeTab.textContent.includes("Math")) {
+            showMathContent();
+        } else {
+            showReadingContent();
+        }
+    }
+
 });
 
 // Function to update user data (call this when you get data from Firebase)
