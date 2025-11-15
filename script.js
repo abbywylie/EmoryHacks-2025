@@ -3,7 +3,7 @@
 
 //firebase imported functions
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
-import { getAuth, signInWithCredential, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
+import { getAuth, signInWithCredential, GoogleAuthProvider, onAuthStateChanged, signOut, signInWithRedirect, getRedirectResult } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
 import { getFirestore, collection, doc, getDoc, setDoc, getDocs, query, where, addDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-analytics.js";
 
@@ -73,6 +73,18 @@ export async function signOutUser() {
     }
 }
 
+async function handleRedirectSignIn(params) {
+    try{
+        const result = await getRedirectResult(auth);
+        if (result) {
+            console.log("Redirect sign-in successful:", result.user.uid);
+        }
+    } catch (error) {
+        console.error("Error handling redirect sign-in:", error);
+    }
+}
+handleRedirectSignIn();
+
 // Monitor auth state
 onAuthStateChanged(auth, (user) => {
     if (user) {
@@ -131,6 +143,8 @@ export async function loadQuestionsFromFirestore(filters = {}) {
     }
 }
 
+let skillChart = null; //declare chart variable globally
+
 // Adaptive question selection based on user progress
 export async function getAdaptiveQuestions(count = 5) {
     if (!currentUserId) {
@@ -179,6 +193,53 @@ function calculateSkillAccuracy(skillScores) {
     }
     return accuracyData;
 }
+
+//renderPerformanceChart function 
+function renderPerformanceChart(accuracyData) {
+    const chartElement = document.getElementById('snapshotChart');
+    if(!chartElement){
+        setTimeout(() => renderPerformanceChart(accuracyData), 100); // Retry after a short delay
+        return;
+    }
+    const ctx = chartElement.getContext('2d');
+    if(!ctx){
+        console.error("Failed to get 2D context for the chart element.");
+        return
+    }
+    const categories = Object.keys(accuracyData);
+    const percentages = Object.values(accuracyData);
+    const chartData = {
+        labels: categories,
+        datasets: [{
+            label: 'Accuracy %', 
+            data: percentages, 
+            backgroundColor: [
+                'rgba(255, 99, 132, 0.7)', 
+                'rgba(54, 162, 235, 0.7)', 
+                'rgba(255, 206, 86, 0.7)' 
+            ],
+            borderWidth: 1
+        }]
+    };
+
+    if(skillChart){
+        skillChart.destroy();
+    }
+    skillChart = new Chart(ctx,{
+        type: 'bar', 
+        data: chartData,
+        options: {
+            // ... (keep the same options you already defined for scales, responsiveness, etc.)
+            scales: {
+                y: { beginAtZero: true, max: 100, ticks: { color: '#9ca3af' } },
+                x: { ticks: { color: '#9ca3af' } }
+            },
+            responsive: true,
+            plugins: { legend: { display: false } }
+        }
+    });
+}
+
 
 function shuffleArray(array) {
     const shuffled = [...array];
@@ -297,6 +358,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Buttons / clickable items
     const startBtn = document.getElementById("start-session");
     const homeLink = document.getElementById("home-link");
+    const googleSignInBtn = document.getElementById("google-sign-in-button");
 
     // Elements inside the trainer page
     const questionText = document.getElementById("card-question-text");
@@ -316,44 +378,17 @@ document.addEventListener("DOMContentLoaded", () => {
     let selectedAnswer = null;
     let isUnsure = false;
 
-    let skillChart = null;
-    function renderPerformanceChart(accuracyData) {
-        const chartElement = document.getElementById('snapshotChart');
-        const categories = Object.keys(accuracyData);
-        const percentages = Object.values(accuracyData);
-        const chartData = {
-            labels: categories,
-            datasets: [{
-                label: 'Accuracy %', 
-                data: percentages, 
-                backgroundColor: [
-                    'rgba(255, 99, 132, 0.7)', 
-                    'rgba(54, 162, 235, 0.7)', 
-                    'rgba(255, 206, 86, 0.7)' 
-                ],
-                borderWidth: 1
-            }]
-        };
-
-        if(skillChart){
-            skillChart.destroy();
-        }
-
-        skillChart = new Chart(chartElement,{
-            type: 'bar', 
-            data: chartData,
-            options: {
-                // ... (keep the same options you already defined for scales, responsiveness, etc.)
-                scales: {
-                    y: { beginAtZero: true, max: 100, ticks: { color: '#9ca3af' } },
-                    x: { ticks: { color: '#9ca3af' } }
-                },
-                responsive: true,
-                plugins: { legend: { display: false } }
+    // Google Sign-In button handler
+    if (googleSignInBtn) {
+        googleSignInBtn.addEventListener("click", async () => {
+            try {
+                const result = await signInWithRedirect(auth, googleProvider);
+                
+            } catch (error) {
+                console.error("Error signing in with Google:", error, error.message);
             }
         });
     }
-
 
     // Switch from landing → trainer
     startBtn.addEventListener("click", async () => {
