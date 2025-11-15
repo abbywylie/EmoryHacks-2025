@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>StudyDeck – Profile</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <div class="app">
+
+    <!-- Navigation -->
+    <header class="top-nav">
+      <div class="logo" id="home-link">StudyDeck<span>.</span></div>
+      <div class="nav-tagline">Your progress at a glance.</div>
+    </header>
+
+    <main>
+
+      <!-- ================================ -->
+      <!-- PROFILE PAGE -->
+      <!-- ================================ -->
+
+      <section id="profile" class="profile" style="max-width: 700px; margin: auto;">
+
+        <!-- User Header -->
+        <div class="profile-header" style="text-align: center; margin-top: 40px;">
+          <div id="profile-picture" 
+               style="width: 120px; height: 120px; border-radius: 50%; background:#eee; margin: 0 auto 20px;">
+          </div>
+
+          <h1 id="profile-name">Your Name</h1>
+          <p id="profile-email" style="color: #666;">email@example.com</p>
+        </div>
+
+        <!-- Stats Section -->
+        <div class="profile-stats" style="margin-top: 40px;">
+          <h2>Stats</h2>
+
+          <div class="stats-grid" style="
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 20px;
+          ">
+            <div class="stat-card" style="padding: 20px; border: 1px solid #ddd; border-radius: 10px; text-align:center;">
+              <div class="stat-value" id="sessions-completed" style="font-size: 2rem;">0</div>
+              <div class="stat-label">Sessions</div>
+            </div>
+
+            <div class="stat-card" style="padding: 20px; border: 1px solid #ddd; border-radius: 10px; text-align:center;">
+              <div class="stat-value" id="questions-answered" style="font-size: 2rem;">0</div>
+              <div class="stat-label">Questions</div>
+            </div>
+
+            <div class="stat-card" style="padding: 20px; border: 1px solid #ddd; border-radius: 10px; text-align:center;">
+              <div class="stat-value" id="accuracy" style="font-size: 2rem;">0%</div>
+              <div class="stat-label">Accuracy</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Buttons -->
+        <div style="text-align: center; margin-top: 40px;">
+          <button class="primary-btn" id="edit-profile">Edit Profile</button>
+          <button class="secondary-btn" id="logout-btn" style="margin-left: 10px;" onclick="googleSignOut()">Log out</button>
+        </div>
+
+      </section>
+
+    </main>
+  </div>
+
+  <!-- JS -->
+  <script src="script.js"></script>
+  <script src="profile.js"></script>
+  <script async defer>
+    if (localStorage.getItem("logged-in") == null){
+        window.location.replace("indext.html")
+    } else {
+        loadProfilePage();
+    }
+  </script>
+</body>
+</html>
