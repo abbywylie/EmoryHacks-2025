@@ -8,35 +8,43 @@
     "skillScores": {
         "Algebra": {
             "correct": 40,
-            "total": 50
+            "total": 50,
+            "incorrectQID": ["SAT_MATH_002", "ACT_MATH_001"]
         },
         "Advanced Math": {
             "correct": 12,
-            "total": 15
+            "total": 15,
+            "incorrectQID": ["SAT_MATH_002", "ACT_MATH_001"]
         },
         "Geometry and Trigonometry": {
             "correct": 18,
-            "total": 25
+            "total": 25,
+            "incorrectQID": ["SAT_MATH_002", "ACT_MATH_001"]
         },
         "Problem-Solving and Data Analysis": {
             "correct": 40,
-            "total": 50
+            "total": 50,
+            "incorrectQID": ["SAT_MATH_002", "ACT_MATH_001"]
         },
         "Information and Ideas": {
             "correct": 30,
-            "total": 45
+            "total": 45,
+            "incorrectQID": ["SAT_MATH_002", "ACT_MATH_001"]
         },
         "Craft & Structure": {
             "correct": 40,
-            "total": 50
+            "total": 50,
+            "incorrectQID": ["SAT_MATH_002", "ACT_MATH_001"]
         },
         "Expression of Ideas": {
             "correct": 40,
-            "total": 50
+            "total": 50,
+            "incorrectQID": ["SAT_MATH_002", "ACT_MATH_001"]
         },
         "Conventions of Standard English": {
             "correct": 40,
-            "total": 50
+            "total": 50,
+            "incorrectQID": ["SAT_MATH_002", "ACT_MATH_001"]
         }
     },
     "wrongQuestions": [

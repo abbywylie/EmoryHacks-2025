@@ -108,8 +108,8 @@ onAuthStateChanged(auth, (user) => {
 
             // 2. Redirect to profile page if on landing page
             const currentPath = window.location.pathname;
-            if (currentPath === "/indext.html" || currentPath === "/" || currentPath.endsWith("index.html")) {
-                 window.location.replace("profile.html");
+            if (currentPath === "/index.html" || currentPath === "/" || currentPath.endsWith("index.html")) {
+                // window.location.replace("profile.html");
             }
             // If you are on the profile page, call loadUserProgress() 
             if (currentPath.includes("profile.html")) {

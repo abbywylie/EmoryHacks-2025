@@ -122,7 +122,7 @@
   <!-- JS -->
   <script type="module">
     import './script.js';
-    import './profile.js';
+    import {loadProfilePage} from './profile.js';
     import './theme-loader.js';
     import { auth } from "./script.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
@@ -136,7 +136,7 @@
             loadProfilePage();
           } catch (error) {
             console.error("Error loading profile page:", error);
-            window.location.replace("index.html");
+            //window.location.replace("index.html");
           }
         }
       });

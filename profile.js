@@ -67,7 +67,7 @@ export async function loadIndexPage(){
         }
     });
 }
-function loadProfilePage(){
+export function loadProfilePage(){
     console.log("Logged in :thumbsup:");
 
     // Use Firebase Auth state
