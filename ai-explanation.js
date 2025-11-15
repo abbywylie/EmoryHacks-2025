@@ -1,10 +1,15 @@
 // ai-explanation.js
-// Gemini AI integration for interactive explanations
+// Gemini (via OpenRouter) AI integration for interactive explanations
 
-// Gemini API configuration
-// NOTE: Replace with your actual Gemini API key
-const GEMINI_API_KEY = 'YOUR_GEMINI_API_KEY_HERE';
-const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`;
+// ==============================
+// OpenRouter API Configuration
+// ==============================
+
+// IMPORTANT: Use an OpenRouter API key (sk-or-...)
+// DO NOT use a Google gemini key here.
+const OPENROUTER_API_KEY = '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';
+
+const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 
 /**
  * Get AI explanation for a wrong answer based on user's rationale
@@ -16,29 +21,35 @@ const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/
 export async function getAIExplanation(question, userAnswer, rationale) {
     try {
         const prompt = buildPrompt(question, userAnswer, rationale);
-        const response = await fetch(GEMINI_API_URL, {
-            method: 'POST',
+
+        const response = await fetch(OPENROUTER_URL, {
+            method: "POST",
             headers: {
-                'Content-Type': 'application/json',
+                "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+                "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                contents: [{
-                    parts: [{
-                        text: prompt
-                    }]
-                }]
+                // model: "google/gemini-2.5-pro", <-- slower
+                model: "google/gemini-2.5-flash",
+                messages: [
+                    {
+                        role: "user",
+                        content: prompt
+                    }
+                ]
             })
         });
 
         if (!response.ok) {
-            throw new Error(`Gemini API error: ${response.statusText}`);
+            const text = await response.text();
+            throw new Error(`OpenRouter API error: ${response.status} - ${text}`);
         }
 
         const data = await response.json();
-        const explanation = data.candidates[0].content.parts[0].text;
-        
-        // Process explanation to add interactive elements
+        const explanation = data.choices?.[0]?.message?.content || "(No explanation returned)";
+
         return processExplanation(explanation, question);
+
     } catch (error) {
         console.error("Error getting AI explanation:", error);
         return generateFallbackExplanation(question, userAnswer, rationale);
@@ -55,6 +66,7 @@ ${question.options.map((opt, i) => `${String.fromCharCode(65 + i)}. ${opt}`).joi
 
 Correct Answer: ${question.correctAnswer}
 Student's Answer: ${userAnswer}
+Explanation Text: ${question.explanationText}
 
 Student's Reasoning: "${rationale}"
 
@@ -64,6 +76,7 @@ Please provide a helpful, encouraging explanation that:
 3. Points to specific parts of the question or options that are relevant
 4. Explains the correct answer in a way that helps them understand the concept
 5. Uses references like [Option A] or [Question text: "specific phrase"] to point to elements
+6. Uses the explanation text
 
 Format your response in HTML with:
 - <span class="highlight">text</span> for highlighting important concepts
@@ -74,21 +87,18 @@ Keep it concise (2-3 paragraphs) and encouraging.`;
 }
 
 function processExplanation(explanation, question) {
-    // The explanation should already have HTML tags from Gemini
-    // We'll enhance it with interactive functionality
-    
-    // Ensure option references are clickable
+    // Convert [Option A] → clickable span
     let processed = explanation.replace(
         /\[Option ([A-D])\]/gi,
         '<span class="option-reference" data-option="$1">Option $1</span>'
     );
-    
-    // Ensure question references are highlightable
+
+    // Convert [Question text: "phrase"]
     processed = processed.replace(
         /\[Question text: "([^"]+)"\]/gi,
         '<span class="question-reference highlight" data-text="$1">$1</span>'
     );
-    
+
     return processed;
 }
 
@@ -103,7 +113,6 @@ function generateFallbackExplanation(question, userAnswer, rationale) {
 
 /**
  * Apply interactive highlighting to the explanation
- * Makes option references and question references clickable
  */
 export function applyInteractiveHighlights(explanationElement, questionElement, optionsElement) {
     // Make option references clickable
@@ -115,29 +124,26 @@ export function applyInteractiveHighlights(explanationElement, questionElement, 
         });
     });
 
-    // Make question references highlightable
+    // Make question references clickable
     explanationElement.querySelectorAll('.question-reference').forEach(ref => {
         ref.style.cursor = 'pointer';
         ref.addEventListener('click', () => {
-            const textToHighlight = ref.dataset.text;
-            highlightQuestionText(questionElement, textToHighlight);
+            const text = ref.dataset.text;
+            highlightQuestionText(questionElement, text);
         });
     });
 }
 
 function highlightOption(optionsElement, optionLabel) {
-    // Remove previous highlights
     optionsElement.querySelectorAll('.option-item').forEach(item => {
         item.style.boxShadow = '';
     });
 
-    // Highlight the referenced option
     const optionItem = optionsElement.querySelector(`[data-option="${optionLabel}"]`);
     if (optionItem) {
         optionItem.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.5)';
         optionItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        
-        // Remove highlight after 2 seconds
+
         setTimeout(() => {
             optionItem.style.boxShadow = '';
         }, 2000);
@@ -145,16 +151,9 @@ function highlightOption(optionsElement, optionLabel) {
 }
 
 function highlightQuestionText(questionElement, textToHighlight) {
-    // Create a temporary highlight
-    const text = questionElement.textContent;
-    const index = text.indexOf(textToHighlight);
-    
-    if (index !== -1) {
-        // This is a simplified version - in production, you'd want to use ranges
-        questionElement.style.backgroundColor = 'rgba(250, 204, 21, 0.3)';
-        setTimeout(() => {
-            questionElement.style.backgroundColor = '';
-        }, 2000);
-    }
-}
+    questionElement.style.backgroundColor = 'rgba(250, 204, 21, 0.3)';
 
+    setTimeout(() => {
+        questionElement.style.backgroundColor = '';
+    }, 2000);
+}
