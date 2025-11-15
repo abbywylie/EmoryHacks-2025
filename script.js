@@ -399,14 +399,10 @@ document.addEventListener("DOMContentLoaded", () => {
         selectedAnswer = null;
         isUnsure = false;
         rationaleSection.classList.add("hidden");
-        rationaleInput.value = "";
-
         answerFeedback.classList.add("hidden");
         aiExplanationPanel.classList.add("hidden");
         submitBtn.classList.remove("hidden");
         nextBtn.classList.add("hidden");
-
-        unsureBtn.textContent = "I'm unsure";
         
         // Clear option selections
         document.querySelectorAll('.option-item').forEach(item => {
