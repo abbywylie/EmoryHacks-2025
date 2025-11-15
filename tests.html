@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Tests Taken — StudyDeck</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+
+<body>
+  <!-- Sidebar Navigation (same structure as index) -->
+  <nav class="sidebar-nav">
+    <div class="sidebar-logo">StudyDeck<span>.</span></div>
+    <div class="sidebar-nav-links">
+  <a href="index.html" class="sidebar-nav-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+          <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
+        <span>Home</span>
+      </a>
+      <a href="breakdown.html" class="sidebar-nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="20" x2="12" y2="10"></line>
+          <line x1="18" y1="20" x2="18" y2="4"></line>
+          <line x1="6" y1="20" x2="6" y2="16"></line>
+        </svg>
+        <span>Progress</span>
+      </a>
+      <a href="tests.html" class="sidebar-nav-link active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 7h16M4 12h16M4 17h10"></path>
+          <circle cx="18" cy="17" r="2"></circle>
+        </svg>
+        <span>Tests</span>
+      </a>
+      <a href="rewards/rewards.html" class="sidebar-nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+        </svg>
+        <span>Rewards</span>
+      </a>
+      <a href="profile.html" class="sidebar-nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+        <span>Profile</span>
+      </a>
+    </div>
+  </nav>
+
+  <div class="app">
+    <header class="top-nav">
+      <div class="nav-left">
+        <div class="logo" id="home-link">StudyDeck<span>.</span></div>
+        <div class="nav-tagline">Smarter practice. Less time.</div>
+      </div>
+      <div class="nav-right">
+        <a href="breakdown.html" class="nav-btn">View Progress</a>
+        <a href="rewards/rewards.html" class="nav-btn">Rewards</a>
+        <div id="userInfo"></div>
+      </div>
+    </header>
+
+    <main class="page-main">
+      <section class="card large" style="max-width:900px; margin:24px auto;">
+        <h2>Tests Taken</h2>
+
+        <p>Upload CSV files exported from your test records (or manually create entries). Files should include a header row such as <code>testDate,totalScore,reading,writing,math,notes</code>.</p>
+
+        <div class="upload-row" style="gap:8px; margin-bottom:12px; align-items:center;">
+          <button id="open-upload-modal" class="primary-btn">Upload CSV / PDF</button>
+          <button id="view-scores-btn" class="ghost-btn">Refresh / View scores</button>
+        </div>
+
+        <!-- Manual add removed: use Edit on parsed/imported entries to correct fields -->
+
+        <!-- Upload modal (drag & drop or click to select) -->
+        <div id="upload-modal" class="modal hidden" aria-hidden="true">
+          <div class="modal-backdrop" id="upload-backdrop"></div>
+          <div class="modal-content upload-modal-content">
+            <button id="upload-close-btn" class="modal-close">×</button>
+            <h3>Upload test file</h3>
+            <p>Drag and drop a CSV or PDF score report here, or click to choose a file.</p>
+            <div id="upload-dropzone" class="upload-dropzone">
+              <p class="muted">Drop file here</p>
+              <input id="upload-input" type="file" accept=".csv,application/pdf" style="display:none" />
+              <button id="upload-select-btn" class="ghost-btn">Select file</button>
+            </div>
+            <p class="hint" style="margin-top:8px;">CSV columns (recommended): <code>testDate,totalScore,reading,writing,math,notes</code></p>
+          </div>
+        </div>
+
+        <canvas id="score-trend" style="max-width:640px; height:120px; margin-top:18px;"></canvas>
+
+        <div id="tests-list" style="margin-top:12px;">
+          <p>Loading tests…</p>
+        </div>
+
+        <hr />
+
+        <div id="test-details" class="card hidden" style="margin-top:12px;">
+          <!-- detailed view populated by JS -->
+        </div>
+
+        <hr />
+
+        <h3>Helpful resources</h3>
+        <ul>
+          <li><a href="https://collegereadiness.collegeboard.org/sat" target="_blank">Official SAT — College Board</a></li>
+          <li><a href="https://www.khanacademy.org/test-prep/sat" target="_blank">Khan Academy SAT practice</a></li>
+          <li><a href="https://blog.prepscholar.com/sat-scores-explained" target="_blank">How to interpret SAT scores</a></li>
+          <li><a href="https://www.princetonreview.com/college/sat" target="_blank">Test prep resources & tips</a></li>
+        </ul>
+      </section>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script type="module" src="tests.js"></script>
+  <script type="module">
+    import './script.js';
+  </script>
+</body>
+
+</html>

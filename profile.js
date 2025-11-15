@@ -13,13 +13,13 @@ async function handleCredentialResponse(response) {
         const user = await signInWithGoogle(jwt);
         console.log("Signed in with Firebase:", user);
         
-        window.location.replace("indext.html");
+    window.location.replace("index.html");
     } catch (error) {
         console.error("Error signing in:", error);
         alert("Failed to sign in. Please try again.");
     }
 }
-export async function loadIndextPage(){
+export async function loadIndexPage(){
     if (localStorage.getItem("logged-in") == null){
         return;
     }
@@ -118,7 +118,7 @@ async function googleSignOut(){
     try {
         await signOutUser();
         console.log("Signed out of this site.");
-        window.location.replace("indext.html");
+    window.location.replace("index.html");
     } catch (error) {
         console.error("Error signing out:", error);
     }
@@ -131,7 +131,7 @@ document.addEventListener("DOMContentLoaded", () =>{
     const homeLink = document.getElementById("home-link");
     if (homeLink) {
         homeLink.addEventListener("click", () => {
-            window.location.replace("indext.html")
+            window.location.replace("index.html")
         });
     }
 })

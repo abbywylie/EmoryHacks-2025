@@ -229,7 +229,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Home link click handler
     if (homeLink) {
         homeLink.addEventListener("click", () => {
-            window.location.href = "../indext.html";
+            window.location.href = "../index.html";
         });
     }
 
