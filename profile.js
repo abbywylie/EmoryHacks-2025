@@ -1,6 +1,7 @@
 // Import Firebase Auth functions from script.js
-import { signInWithGoogle, auth, signOutUser } from "./script.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
+import { signInWithGoogle, auth } from "./script.js";
+import { onAuthStateChanged, signOut} from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
+
 
 const firebaseConfig = {
     apiKey: "AIzaSyAkZiKfWJjMv-rcl-QIZb14m8BJhCbiB18",
@@ -124,20 +125,24 @@ export function loadProfilePage(){
         }
     });
 }
-async function googleSignOut(){
-    try {
-        await signOutUser();
-        console.log("Signed out of this site.");
-    window.location.replace("index.html");
-    } catch (error) {
-        console.error("Error signing out:", error);
-    }
-}
 
 // Make handleCredentialResponse available globally for Google Sign-In
 window.handleCredentialResponse = handleCredentialResponse;
 
 document.addEventListener("DOMContentLoaded", () =>{
+    const logoutBtn = document.getElementById("logout-btn");
+    if (logoutBtn) {
+        logoutBtn.addEventListener("click", async () => {
+            try {
+                await signOut(auth);
+                console.log("Signed out of this site.");
+                window.location.replace("index.html");
+            } catch (error) {
+                console.error("Error signing out:", error);
+            }
+        });
+    }
+
     const homeLink = document.getElementById("home-link");
     if (homeLink) {
         homeLink.addEventListener("click", () => {

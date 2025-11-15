@@ -42,7 +42,7 @@ export async function signInWithGoogle(credential) {
         const user = result.user;
         
         // Initialize user progress in Firestore if it doesn't exist
-        const userProgressRef = doc(db, 'users', user.uid, 'progress', 'data');
+        const userProgressRef = doc(db, 'Users', user.uid, 'progress', 'data');
         const userProgressSnap = await getDoc(userProgressRef);
         
         if (!userProgressSnap.exists()) {
@@ -151,7 +151,7 @@ async function loadUserProgress() {
     if (!currentUserId) return;
     
     try {
-        const userProgressRef = doc(db, 'users', currentUserId, 'progress', 'data');
+        const userProgressRef = doc(db, 'Users', currentUserId, 'progress', 'data');
         const userProgressSnap = await getDoc(userProgressRef);
         
         if (userProgressSnap.exists()) {
@@ -306,7 +306,7 @@ export async function createSession() {
     if (!currentUserId) return null;
     
     try {
-        const sessionRef = await addDoc(collection(db, 'users', currentUserId, 'sessions'), {
+        const sessionRef = await addDoc(collection(db, 'Users', currentUserId, 'sessions'), {
             questions: [],
             answers: [],
             timestamp: new Date(),
@@ -324,7 +324,7 @@ export async function saveAnswerToSession(questionId, userAnswer, isCorrect, rat
     if (!currentUserId || !currentSessionId) return;
     
     try {
-        const sessionRef = doc(db, 'users', currentUserId, 'sessions', currentSessionId);
+        const sessionRef = doc(db, 'Users', currentUserId, 'sessions', currentSessionId);
         await updateDoc(sessionRef, {
             questions: arrayUnion(questionId),
             answers: arrayUnion({
@@ -344,7 +344,7 @@ export async function updateUserProgress(questionId, isCorrect, skillCategory, t
     if (!currentUserId) return;
     
     try {
-        const progressRef = doc(db, 'users', currentUserId, 'progress', 'data');
+        const progressRef = doc(db, 'Users', currentUserId, 'progress', 'data');
         
         if (!isCorrect) {
             // Add to wrong questions if not already there
@@ -383,14 +383,14 @@ export async function completeSession() {
     if (!currentUserId || !currentSessionId) return;
     
     try {
-        const sessionRef = doc(db, 'users', currentUserId, 'sessions', currentSessionId);
+        const sessionRef = doc(db, 'Users', currentUserId, 'sessions', currentSessionId);
         await updateDoc(sessionRef, {
             completed: true,
             completedAt: new Date()
         });
         
         // Update progress sessions list
-        const progressRef = doc(db, 'users', currentUserId, 'progress', 'data');
+        const progressRef = doc(db, 'Users', currentUserId, 'progress', 'data');
         await updateDoc(progressRef, {
             sessions: arrayUnion(currentSessionId)
         });
@@ -435,10 +435,16 @@ document.addEventListener("DOMContentLoaded", () => {
     if (loginBtn) {
         loginBtn.addEventListener("click", async() => {
             signInWithPopup(auth, googleProvider)
-            .then((result) => {
+            .then(async (result) => {
                 const user = result.user;
                 console.log("User signed in:", user.displayName, user.email);
 
+                const db = getFirestore();
+                await setDoc(doc(db, 'Users', user.uid), {
+                    name: user.displayName,
+                    email: user.email,
+
+                });
                 loadIndexPage();
             })
             .catch((error) => {

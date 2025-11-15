@@ -1,10 +1,13 @@
 {
     "email": "student_alpha@example.com",
-    "username": "student_alpha",
     "password": "password123",
-    "targetScore": 1400,
     "currentScore": 10,
-    "targetTests": ["SAT", "ACT"],
+    "points": 150,
+    "rewards": {
+        "equippedIcon": "https://example.com/icons/default.png",
+        "equippedTheme": "default",
+        "items": ["icon1", "theme1"]
+    },
     "skillScores": {
         "Algebra": {
             "correct": 40,
@@ -47,42 +50,18 @@
             "incorrectQID": ["SAT_MATH_002", "ACT_MATH_001"]
         }
     },
-    "wrongQuestions": [
-        "SAT_MATH_002",
-        "SAT_READING_WRITING_005",
-        "ACT_SCIENCE_003"
-    ],
-    "sessions":[
-        "s_20250901_a1",
-        "s_20250902_b2",
-        "s_20250903_c3"
-    ],
-    "topicProgress": {
-        "Linear Equations":{
-            "currentDifficulty": 4,
-            "correctScore": 15,
-            "totalAttempted": 20,
-            "masteryScore": 0.75
-        },
-        "Punctuation Rules":{
-            "currentDifficulty": 3,
-            "correctScore": 12,
-            "totalAttempted": 15,
-            "masteryScore": 0.8
-        },
-        "Data Representation":{
-            "currentDifficulty": 5,
-            "correctScore": 18,
-            "totalAttempted": 25,
-            "masteryScore": 0.72
-        }
-    },
-    "attemptedQuestions": [
-        "ACT_MATH_001",
-        "ACT_MATH_002", 
-        "SAT_READING_WRITING_005"
-    ],
-    "testDate": "2024-12-15"
+    "sessions":{
+        "session1":{
+            "answers": [
+                {"questionID": "SAT_MATH_001", "isCorrect": true, "rationale": "", "timestamp": "2024-12-01T10:00:00Z", "userAnswer": "A"},
+                {"questionID": "ACT_MATH_001", "isCorrect": false, "rationale": "", "timestamp": "2024-12-01T10:05:00Z", "userAnswer": "B"},
+                {"questionID": "SAT_READING_WRITING_001", "isCorrect": true, "rationale": "", "timestamp": "2024-12-01T10:10:00Z", "userAnswer": "C"}
+            ],
+            "questions": ["SAT_MATH_001", "ACT_MATH_001", "SAT_READING_WRITING_001"],
+            "sessionID": "session1",
+            "timestamp": "2024-12-01T10:00:00Z"
+        } 
+}
 }
 
 
