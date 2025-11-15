@@ -80,8 +80,15 @@
           </div>
         </div>
 
-        <!-- Math Score Display -->
-        <div class="score-display">
+        <!-- NEW: Empty state container, hidden by default -->
+        <div id="empty-progress" class="empty-progress-container hidden">
+          <h2>Welcome to your Progress Hub!</h2>
+          <p>You don't have any progress yet. Complete a session to see your performance breakdown appear here.</p>
+          <a href="index.html" class="primary-btn">Start Your First Session</a>
+        </div>
+
+        <!-- MODIFIED: Added id="score-display" -->
+        <div id="score-display" class="score-display">
           <h2>Math Knowledge</h2>
           <div class="score-card">
             <div class="score-label">Your Math Score</div>
@@ -89,8 +96,8 @@
           </div>
         </div>
 
-        <!-- Skills Performance -->
-        <div class="skills-section">
+        <!-- MODIFIED: Added id="skills-section" -->
+        <div id="skills-section" class="skills-section">
           <h2>Math Skills Performance</h2>
           <p class="skills-description">
             View your performance across the 4 Math content areas measured on the SAT.

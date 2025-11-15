@@ -23,18 +23,18 @@ async function handleCredentialResponse(response) {
         // Sign in with Firebase using the credential
         const user = await signInWithGoogle(jwt);
         console.log("Signed in with Firebase:", user);
-        
-    window.location.replace("index.html");
+
+        window.location.replace("index.html");
     } catch (error) {
         console.error("Error signing in:", error);
         alert("Failed to sign in. Please try again.");
     }
 }
-export async function loadIndexPage(){
+export async function loadIndexPage() {
     // if (localStorage.getItem("logged-in") == null){
     //     return;
     // }
-    
+
     // Use Firebase Auth state
     onAuthStateChanged(auth, async (user) => {
         if (user) {
@@ -47,7 +47,7 @@ export async function loadIndexPage(){
                     const { db } = await import('./script.js');
                     const prefsRef = doc(db, 'users', user.uid, 'preferences', 'settings');
                     const prefsSnap = await getDoc(prefsRef);
-                    
+
                     if (prefsSnap.exists() && prefsSnap.data().equippedIcon) {
                         const equippedIconId = prefsSnap.data().equippedIcon;
                         iconSrc = `rewards/icons/${equippedIconId.replace('icon-', '')}.png`;
@@ -55,12 +55,12 @@ export async function loadIndexPage(){
                 } catch (error) {
                     console.error("Error loading equipped icon:", error);
                 }
-                
+
                 userInfoEl.innerHTML = `
                     <p class="right-aligned">Welcome, <strong>${user.displayName || user.email}</strong><input type="image" src="${iconSrc}" id="nav-profile-img" style="width:50px; height:50px; border-radius:50%; object-fit:cover;" onclick='window.location.replace("profile.html")'/></p>
                 `;
             }
-            
+
             const signInEl = document.getElementById("signIn");
             if (signInEl) {
                 signInEl.remove();
@@ -68,7 +68,7 @@ export async function loadIndexPage(){
         }
     });
 }
-export function loadProfilePage(){
+export function loadProfilePage() {
     console.log("Logged in :thumbsup:");
 
     // Use Firebase Auth state
@@ -85,20 +85,20 @@ export function loadProfilePage(){
         if (profileNameEl) {
             profileNameEl.innerHTML = user.displayName || user.email || "Your Name";
         }
-        
+
         // Load equipped icon from Firestore
         try {
             const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js");
             const { db } = await import('./script.js');
             const prefsRef = doc(db, 'users', user.uid, 'preferences', 'settings');
             const prefsSnap = await getDoc(prefsRef);
-            
+
             let iconSrc = null;
             if (prefsSnap.exists() && prefsSnap.data().equippedIcon) {
                 const equippedIconId = prefsSnap.data().equippedIcon;
                 iconSrc = `rewards/icons/${equippedIconId.replace('icon-', '')}.png`;
             }
-            
+
             if (profilePictureEl) {
                 if (iconSrc) {
                     profilePictureEl.innerHTML = `<img src="${iconSrc}" style="height: 100%; width: 100%; border-radius:50%; opacity: 1; object-fit: cover;"/>`
@@ -119,30 +119,26 @@ export function loadProfilePage(){
                 }
             }
         }
-        
+
         if (profileEmailEl) {
             profileEmailEl.innerHTML = user.email || "email@example.com";
         }
     });
 }
+async function googleSignOut() {
+    try {
+        await signOutUser();
+        console.log("Signed out of this site.");
+        window.location.replace("index.html");
+    } catch (error) {
+        console.error("Error signing out:", error);
+    }
+}
 
 // Make handleCredentialResponse available globally for Google Sign-In
 window.handleCredentialResponse = handleCredentialResponse;
 
-document.addEventListener("DOMContentLoaded", () =>{
-    const logoutBtn = document.getElementById("logout-btn");
-    if (logoutBtn) {
-        logoutBtn.addEventListener("click", async () => {
-            try {
-                await signOut(auth);
-                console.log("Signed out of this site.");
-                window.location.replace("index.html");
-            } catch (error) {
-                console.error("Error signing out:", error);
-            }
-        });
-    }
-
+document.addEventListener("DOMContentLoaded", () => {
     const homeLink = document.getElementById("home-link");
     if (homeLink) {
         homeLink.addEventListener("click", () => {

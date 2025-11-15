@@ -25,6 +25,31 @@ let userData = {
     }
 };
 
+// --- NEW HELPER FUNCTIONS ---
+
+// Shows the "empty state" message and hides the score cards
+function showEmptyState() {
+    const emptyEl = document.getElementById("empty-progress");
+    const scoreEl = document.getElementById("score-display");
+    const skillsEl = document.getElementById("skills-section");
+
+    if (emptyEl) emptyEl.classList.remove("hidden");
+    if (scoreEl) scoreEl.classList.add("hidden");
+    if (skillsEl) skillsEl.classList.add("hidden");
+}
+
+// Shows the score cards and hides the "empty state" message
+function showProgressState() {
+    const emptyEl = document.getElementById("empty-progress");
+    const scoreEl = document.getElementById("score-display");
+    const skillsEl = document.getElementById("skills-section");
+
+    if (emptyEl) emptyEl.classList.add("hidden");
+    if (scoreEl) scoreEl.classList.remove("hidden");
+    if (skillsEl) skillsEl.classList.remove("hidden");
+}
+
+// --- MODIFIED FUNCTION ---
 
 // Load user progress from Firestore
 async function loadUserProgressFromFirestore(userId) {
@@ -32,13 +57,25 @@ async function loadUserProgressFromFirestore(userId) {
         const progressRef = doc(db, 'users', userId, 'progress', 'data');
         const progressSnap = await getDoc(progressRef);
         
+        // MODIFIED: Check if user has no data, show empty state if true
         if (!progressSnap.exists()) {
-            console.log("No progress data found for user");
+            console.log("No progress data found for user.");
+            showEmptyState(); // Show welcome message
             return;
         }
         
         const progressData = progressSnap.data();
         const skillScores = progressData.skillScores || {};
+
+        // MODIFIED: Check if skillScores object is empty
+        if (Object.keys(skillScores).length === 0) {
+            console.log("User exists but has no skill scores.");
+            showEmptyState(); // Show welcome message
+            return;
+        }
+
+        // If we get here, user has data. Show the progress.
+        showProgressState(); // Show the real score cards
         
         // Calculate scores for each skill category
         const mathSkills = userData.math.skills;
@@ -80,6 +117,7 @@ async function loadUserProgressFromFirestore(userId) {
         updateUserData(userData);
     } catch (error) {
         console.error("Error loading user progress:", error);
+        showEmptyState(); // Also show empty state on error as a fallback
     }
 }
 
@@ -88,6 +126,10 @@ document.addEventListener("DOMContentLoaded", () => {
     onAuthStateChanged(auth, (user) => {
         if (user) {
             loadUserProgressFromFirestore(user.uid);
+        } else {
+            // If no user is logged in, show the empty state
+            showEmptyState();
+            console.log("No user logged in. Showing empty state.");
         }
     });
     
@@ -121,14 +163,23 @@ function showMathContent() {
     
     // Smooth transition
     const skillsContainer = document.querySelector(".skills-section");
+    const scoreContainer = document.querySelector(".score-display"); // Get score container
+    if (!skillsContainer || !scoreContainer) return; // Add guard clause
+
     skillsContainer.style.opacity = '0';
+    scoreContainer.style.opacity = '0';
     
     setTimeout(() => {
-        document.querySelector(".score-display h2").textContent = "Math Knowledge";
-        document.querySelector(".score-label").textContent = "Your Math Score";
+        scoreContainer.innerHTML = `
+            <h2>Math Knowledge</h2>
+            <div class="score-card">
+                <div class="score-label">Your Math Score</div>
+                <div class="score-value" id="score-value-display">${mathData.totalScore}</div>
+            </div>
+        `;
         
         // Animate score counting
-        animateScore(document.querySelector(".score-value"), mathData.totalScore, 1000);
+        animateScore(document.getElementById("score-value-display"), mathData.totalScore, 1000);
         
         const skillsHTML = mathData.skills.map((skill, index) => `
             <div class="skill-item" style="animation-delay: ${index * 0.1}s">
@@ -168,12 +219,14 @@ function showMathContent() {
         }, 100);
         
         skillsContainer.style.opacity = '1';
+        scoreContainer.style.opacity = '1';
         attachSkillLinkListeners();
     }, 300);
 }
 
 // Add score counting animation
 function animateScore(element, target, duration) {
+    if (!element) return; // Add guard clause
     const start = parseInt(element.textContent) || 0;
     const increment = (target - start) / (duration / 16);
     let current = start;
@@ -195,15 +248,25 @@ function animateScore(element, target, duration) {
     
     // Smooth transition
     const skillsContainer = document.querySelector(".skills-section");
+    const scoreContainer = document.querySelector(".score-display"); // Get score container
+    if (!skillsContainer || !scoreContainer) return; // Add guard clause
+
     skillsContainer.style.opacity = '0';
+    scoreContainer.style.opacity = '0';
     skillsContainer.style.transition = 'opacity 0.3s ease';
+    scoreContainer.style.transition = 'opacity 0.3s ease';
     
     setTimeout(() => {
-        document.querySelector(".score-display h2").textContent = "Reading and Writing Knowledge";
-        document.querySelector(".score-label").textContent = "Your Reading and Writing Score";
+        scoreContainer.innerHTML = `
+            <h2>Reading and Writing Knowledge</h2>
+            <div class="score-card">
+                <div class="score-label">Your Reading and Writing Score</div>
+                <div class="score-value" id="score-value-display">${readingData.totalScore}</div>
+            </div>
+        `;
         
         // Animate score counting
-        animateScore(document.querySelector(".score-value"), readingData.totalScore, 1000);
+        animateScore(document.getElementById("score-value-display"), readingData.totalScore, 1000);
         
         const skillsHTML = readingData.skills.map((skill, index) => `
             <div class="skill-item" style="animation: fadeInUp 0.6s ease ${index * 0.1}s backwards">
@@ -243,21 +306,10 @@ function animateScore(element, target, duration) {
         }, 100);
         
         skillsContainer.style.opacity = '1';
+        scoreContainer.style.opacity = '1';
         attachSkillLinkListeners();
     }, 300);
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
     function attachSkillLinkListeners() {
     console.log("Attaching skill link listeners..."); // DEBUG
@@ -284,8 +336,9 @@ function animateScore(element, target, duration) {
     });
 }
 
+// MODIFIED: Check for active tab *only if* progress is being shown
 const activeTab = document.querySelector(".tab-btn.active");
-    if (activeTab) {
+    if (activeTab && !document.getElementById("empty-progress").classList.contains("hidden")) {
         if (activeTab.textContent.includes("Math")) {
             showMathContent();
         } else {

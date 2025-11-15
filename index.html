@@ -65,6 +65,9 @@
       <div class="nav-right">
         <a href="breakdown.html" class="nav-btn">View Progress</a>
         <a href="rewards/rewards.html" class="nav-btn">Rewards</a>
+        <!--Google Login-->
+        <!-- <div id="g_id_onload" data-client_id="1038908932530-vidvtvlcbpimnt0on6qo2kp0dc8tnomq.apps.googleusercontent.com"
+          data-callback="handleCredentialResponse">
         </div>
         <div id="userInfo">
           <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="sign_in_with"
@@ -73,7 +76,7 @@
         </div> -->
         <button id="google-sign-in-button" class="primary-btn hidden">Sign in with Google</button>
         <div id="userInfo">
-          
+
         </div>
       </div>
     </header>
@@ -109,7 +112,7 @@
             <span class="chip" id="topic-chip">Topic: Loading...</span>
             <span class="card-progress" id="question-counter">Question 0 / 0</span>
           </div>
-          
+
           <div class="card-question" id="card-question-text">
             Loading question...
           </div>
@@ -122,12 +125,8 @@
           <!-- Rationale Section (shown when unsure) -->
           <div id="rationale-section" class="rationale-section hidden">
             <label class="card-label">Explain your reasoning:</label>
-            <textarea 
-              id="rationale-input" 
-              class="card-input" 
-              placeholder="Why did you choose this answer? What were you thinking?"
-              rows="4"
-            ></textarea>
+            <textarea id="rationale-input" class="card-input"
+              placeholder="Why did you choose this answer? What were you thinking?" rows="4"></textarea>
           </div>
 
           <!-- Answer Feedback -->

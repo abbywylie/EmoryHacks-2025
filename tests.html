@@ -14,8 +14,8 @@
   <nav class="sidebar-nav">
     <div class="sidebar-logo">StudyDeck<span>.</span></div>
     <div class="sidebar-nav-links">
-  <a href="index.html" class="sidebar-nav-link">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <a href="index.html" class="sidebar-nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
           <polyline points="9 22 9 12 15 12 15 22"></polyline>
         </svg>
@@ -69,11 +69,13 @@
       <section class="card large" style="max-width:900px; margin:24px auto;">
         <h2>Tests Taken</h2>
 
-        <p>Upload CSV files exported from your test records (or manually create entries). Files should include a header row such as <code>testDate,totalScore,reading,writing,math,notes</code>.</p>
+        <p>Upload CSV files exported from your test records (or manually create entries). Files should include a header
+          row such as <code>testDate,totalScore,reading,writing,math,notes</code>.</p>
 
         <div class="upload-row" style="gap:8px; margin-bottom:12px; align-items:center;">
           <button id="open-upload-modal" class="primary-btn">Upload CSV / PDF</button>
           <button id="view-scores-btn" class="ghost-btn">Refresh / View scores</button>
+          <button id="clear-tests-btn" class="ghost-btn">Clear stored tests</button>
         </div>
 
         <!-- Manual add removed: use Edit on parsed/imported entries to correct fields -->
@@ -90,11 +92,15 @@
               <input id="upload-input" type="file" accept=".csv,application/pdf" style="display:none" />
               <button id="upload-select-btn" class="ghost-btn">Select file</button>
             </div>
-            <p class="hint" style="margin-top:8px;">CSV columns (recommended): <code>testDate,totalScore,reading,writing,math,notes</code></p>
+            <p class="hint" style="margin-top:8px;">CSV columns (recommended):
+              <code>testDate,totalScore,reading,writing,math,notes</code>
+            </p>
           </div>
         </div>
 
-        <canvas id="score-trend" style="max-width:640px; height:120px; margin-top:18px;"></canvas>
+        <!-- Chart hidden by default to avoid empty/placeholder rendering when there are no scores.
+       Tests JS can make this visible when data is available. -->
+        <canvas id="score-trend" style="max-width:640px; height:120px; margin-top:18px; display:none;"></canvas>
 
         <div id="tests-list" style="margin-top:12px;">
           <p>Loading tests…</p>
@@ -110,17 +116,43 @@
 
         <h3>Helpful resources</h3>
         <ul>
-          <li><a href="https://collegereadiness.collegeboard.org/sat" target="_blank">Official SAT — College Board</a></li>
-          <li><a href="https://www.khanacademy.org/test-prep/sat" target="_blank">Khan Academy SAT practice</a></li>
-          <li><a href="https://blog.prepscholar.com/sat-scores-explained" target="_blank">How to interpret SAT scores</a></li>
-          <li><a href="https://www.princetonreview.com/college/sat" target="_blank">Test prep resources & tips</a></li>
+          <li><a href="https://collegereadiness.collegeboard.org/sat" target="_blank">Official SAT — College Board</a>
+          </li>
+          <li><a href="https://www.khanacademy.org/test-prep/digital-sat" target="_blank">Khan Academy SAT practice</a>
+          </li>
+          <li><a
+              href="https://www.kaptest.com/sat/free/sat-practice?srsltid=AfmBOopKXsute6clqDJfbRn9iBdiE6sJDXO9b-Vdpen19M93uEKZm9a7"
+              target="_blank">Kaplan Test Prep</a></li>
+          <li><a href="https://www.princetonreview.com/college/free-sat-practice-test" target="_blank">Test prep
+              resources & tips</a></li>
         </ul>
       </section>
     </main>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script type="module" src="tests.js"></script>
+  <!-- PapaParse for robust CSV parsing -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
+
+  <!-- PDF.js for rendering PDFs to images -->
+  <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+  <script>
+    // Configure PDF.js worker
+    if (typeof pdfjsLib !== 'undefined') {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+      console.log('✅ PDF.js loaded and configured');
+    } else {
+      console.error('❌ PDF.js failed to load!');
+    }
+  </script>
+
+  <!-- 
+    🔑 TO USE PDF UPLOAD: 
+    1. Get a free Gemini API key at: https://aistudio.google.com/apikey
+    2. Open tests.js and replace "YOUR_API_KEY_HERE" with your actual key
+  -->
+
+  <script src="tests.js"></script>
   <script type="module">
     import './script.js';
   </script>

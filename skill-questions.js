@@ -1,6 +1,10 @@
 // skill-questions.js
 
-// Mock data for wrong answers (replace with Firebase later)
+import { auth, db } from './script.js';
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
+import { loadWrongQuestionsForCategory } from './script.js';
+
+// Mock data for wrong answers (fallback if not logged in)
 const mockWrongQuestions = {
     "Algebra": [
         {
@@ -122,7 +126,7 @@ const skillData = {
     "Expression of Ideas": { performance: "800-800", score: 800, progressWidth: 100 }
 };
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
     // Get the selected skill from localStorage
     const selectedSkill = localStorage.getItem('selectedSkill');
     
@@ -140,22 +144,64 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById('skill-progress-bar').style.width = skill.progressWidth + '%';
     }
     
-    // Get wrong questions for this skill
-    const questions = mockWrongQuestions[selectedSkill] || [];
+    // Load wrong questions from Firebase
+    await loadAndRenderWrongQuestions(selectedSkill);
+});
+
+// Load and render wrong questions from Firebase
+async function loadAndRenderWrongQuestions(selectedSkill) {
+    const container = document.getElementById('questions-container');
     
-    if (questions.length === 0) {
-        document.getElementById('questions-container').innerHTML = `
-            <div class="no-questions-review">
-                <p>Great job! You haven't gotten any ${selectedSkill} questions wrong yet.</p>
-                <p>Keep up the excellent work!</p>
+    // Show loading state
+    container.innerHTML = '<div class="loading">Loading questions...</div>';
+    
+    try {
+        // Check if user is logged in
+        const user = auth.currentUser;
+        
+        let questions = [];
+        
+        if (user) {
+            // Load from Firebase
+            console.log(`Loading wrong questions for category: ${selectedSkill}`);
+            questions = await loadWrongQuestionsForCategory(selectedSkill);
+            console.log(`Loaded ${questions.length} wrong questions from Firebase`);
+        } else {
+            // Fallback to mock data if not logged in
+            console.log('User not logged in, using mock data');
+            questions = mockWrongQuestions[selectedSkill] || [];
+        }
+        
+        // Update header with question count
+        const headerEl = document.getElementById('questions-header');
+        if (headerEl) {
+            headerEl.textContent = questions.length > 0 
+                ? `Questions You Got Wrong (${questions.length})` 
+                : 'Questions You Got Wrong';
+        }
+        
+        if (questions.length === 0) {
+            container.innerHTML = `
+                <div class="no-questions-review">
+                    <p>Great job! You haven't gotten any ${selectedSkill} questions wrong yet.</p>
+                    <p>Keep up the excellent work!</p>
+                </div>
+            `;
+            return;
+        }
+        
+        // Render the questions
+        renderReviewQuestions(questions);
+    } catch (error) {
+        console.error('Error loading wrong questions:', error);
+        container.innerHTML = `
+            <div class="error-message">
+                <p>Error loading questions. Please try again.</p>
+                <button onclick="location.reload()">Reload</button>
             </div>
         `;
-        return;
     }
-    
-    // Render the questions
-    renderReviewQuestions(questions);
-});
+}
 
 function renderReviewQuestions(questions) {
     const container = document.getElementById('questions-container');
