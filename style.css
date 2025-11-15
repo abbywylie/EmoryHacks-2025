@@ -19,6 +19,10 @@ body {
     padding: 1.5rem 1.25rem 3rem;
 }
 
+.scrollable {
+    height: 10000px;
+}
+
 .top-nav {
     display: flex;
     align-items: baseline;

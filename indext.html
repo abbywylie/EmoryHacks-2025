@@ -10,7 +10,7 @@
 
 
 
-<body>
+<body class="scrollable">
   <div class="app">
 
     <!-- Navigation -->
@@ -33,11 +33,10 @@
       </div>
     </div>
       <div class="nav-right">
-  <a href="breakdown.html" class="nav-btn">View Progress</a>
-  <a href="rewards.html" class="nav-btn">Rewards</a>
-</div>
+        <a href="breakdown.html" class="nav-btn">View Progress</a>
+        <a href="rewards.html" class="nav-btn">Rewards</a>
+      </div>
     </header>
-
     <main>
 
       <!-- ================================ -->
@@ -67,11 +66,24 @@
 
     </main>
   </div>
+  <div class = "app">
+    <section>
+      <div class="hero">
+        <h1>About</h1>
+        <p id="about-content"></p>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+        <script defer>
+            $(document).ready(function() {
+                $("#about-content").load("/about.html");
+            });
+        </script>
+      </div>
+    </section>
+  </div>
 
   <!-- JS -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="script.js"></script>
-
   <script src="profile.js"></script>
   <script async defer>
     loadIndextPage();

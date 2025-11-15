@@ -25,8 +25,6 @@ function loadIndextPage(){
         <p class="right-aligned">Welcome, <strong>${payload.name}</strong><input type="image" src="/img/profile-btn.png" style="width:50px; height:50px;" onclick='window.location.replace("profile.html")'/></p>
         <!-- <img src="${payload.picture}" class="right-aligned"/> -->
     `;
-
-    document.getElementById("signIn").remove();
 }
 function loadProfilePage(){
     console.log("Logged in :thumbsup:");
