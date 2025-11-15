@@ -586,7 +586,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 .then((result) => {
                     const user = result.user;
                     console.log("User signed in:", user.displayName, user.email);
-
+                    //save to firestore
+                    const db = getFirestore();
+                    setDoc(doc(db, 'Users', user.uid), {
+                        name: user.displayName,
+                        email: user.email
+                    });
+                    console.log("User document created/updated in Firestore");
                     loadIndexPage();
                 })
                 .catch((error) => {
