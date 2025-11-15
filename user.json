@@ -1,0 +1,37 @@
+{
+    "email": "student_alpha@example.com",
+    "username": "student_alpha",
+    "password": "password123",
+    "targetScore": 1400,
+    "currentScore": 10,
+    "targetTests": ["SAT", "ACT"],
+    "topicProgress": {
+        "SAT_Math: Linear Equations":{
+            "currentDifficulty": 4,
+            "correctScore": 15,
+            "totalAttempted": 20,
+            "masteryScore": 0.75
+        },
+        "SAT_Reading: Punctuation Rules":{
+            "currentDifficulty": 3,
+            "correctScore": 12,
+            "totalAttempted": 15,
+            "masteryScore": 0.8
+        },
+        "ACT_Science: Data Representation":{
+            "currentDifficulty": 5,
+            "correctScore": 18,
+            "totalAttempted": 25,
+            "masteryScore": 0.72
+        }
+    },
+    "attemptedQuestions": [
+        "ACT_MATH_001",
+        "ACT_MATH_002", 
+        "SAT_ENG_005"
+    ],
+    "testDate": "2024-12-15"
+}
+
+
+

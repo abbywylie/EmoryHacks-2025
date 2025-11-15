@@ -1,0 +1,15 @@
+{
+    "id": "SAT_MATH_001",
+    "subject": "Math",
+    "topic": "SAT_Math: Linear Equations",
+    "difficulty": 4,
+    "questionText": "If 3x + 1 = 16, what is x?",
+    "correctAnswer": "5",
+    "options": ["4", "5", "6", "7"],
+    "explanation": "To solve for x, subtract 1 from both sides to get 3x = 15, then divide both sides by 3 to find x = 5.",
+    "applicableTests": ["SAT"],
+    "tags": ["linear equations", "algebra"],
+    "isMultipleChoice": true,
+    "isImageQuestion": false,
+    "imageUrl": null
+}
