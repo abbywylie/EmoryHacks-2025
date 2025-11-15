@@ -61,7 +61,7 @@
       <!-- TRAINER PAGE (HIDDEN AT START) -->
       <!-- ================================ -->
 
-      <section id="trainer" class="trainer hidden">
+      <section id="trainer" class="trainer">
 
         <div class="trainer-main">
 
@@ -105,16 +105,13 @@
             might need more practice.
           </p>
 
-          <ul class="sidebar-list">
-            <li><span id="stat-reading">Reading: —</span></li>
-            <li><span id="stat-writing">Writing: —</span></li>
-            <li><span id="stat-math">Math: —</span></li>
-          </ul>
+          <canvas id="snapshotChart"></canvas>
 
           <p class="sidebar-footnote">
             The adaptive engine will go here next — follow-up decks,
             recommendations, and skill targeting.
           </p>
+          <canvas id="snapshotChart"></canvas>
         </aside>
       </section>
 
@@ -122,7 +119,9 @@
   </div>
 
   <!-- JS -->
+   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="script.js"></script>
+
 </body>
 
 </html>

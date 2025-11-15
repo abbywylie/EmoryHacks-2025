@@ -76,4 +76,54 @@ document.addEventListener("DOMContentLoaded", () => {
             nextBtn.textContent = "Done";
         }
     });
+    
+    // --- CHART.JS IMPLEMENTATION ---
+
+// 1. Get the placeholder element by its ID
+const chartElement = document.getElementById('snapshotChart');
+
+// 2. Define the data for the chart (change these numbers for the hackathon!)
+const chartData = {
+    labels: ['Reading', 'Writing', 'Math'],
+    datasets: [{
+        label: 'Accuracy %', 
+        data: [75, 80, 65],  // Example Accuracy Data
+        backgroundColor: [
+            'rgba(255, 99, 132, 0.7)', // Red
+            'rgba(54, 162, 235, 0.7)', // Blue
+            'rgba(255, 206, 86, 0.7)'  // Yellow
+        ],
+        borderWidth: 1
+    }]
+};
+
+// 3. Create the new chart
+new Chart(chartElement, {
+    type: 'bar', // We are creating a Bar Chart
+    data: chartData,
+    options: {
+        scales: {
+            y: {
+                beginAtZero: true,
+                max: 100, // Max scale for percentages
+                ticks: {
+                    color: '#9ca3af' // Style the text to match your site's dark theme
+                }
+            },
+            x: {
+                ticks: {
+                    color: '#9ca3af'
+                }
+            }
+        },
+        responsive: true,
+        plugins: {
+            legend: {
+                display: false 
+            }
+        }
+    }
+});
+
+// --- END CHART.JS IMPLEMENTATION ---
 });
