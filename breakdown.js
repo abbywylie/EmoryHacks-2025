@@ -10,20 +10,21 @@ let userData = {
         skills: [
             { name: "Algebra", percentage: "35% of section, 13-15 questions", performance: "200-800", score: 200 },
             { name: "Advanced Math", percentage: "35% of section, 13-15 questions", performance: "200-800", score: 200 },
-            { name: "Problem Solving & Data Analysis", percentage: "15% of section, 5-7 questions", performance: "200-800", score: 200 },
-            { name: "Geometry & Trigonometry", percentage: "15% of section, 5-7 questions", performance: "200-800", score: 200 }
+            { name: "Problem-Solving and Data Analysis", percentage: "15% of section, 5-7 questions", performance: "200-800", score: 200 },
+            { name: "Geometry and Trigonometry", percentage: "15% of section, 5-7 questions", performance: "200-800", score: 200 }
         ]
     },
     reading: {
         totalScore: 200,
         skills: [
-            { name: "Craft and Structure", percentage: "28% of section, 13-15 questions", performance: "200-800", score: 200 },
+            { name: "Craft & Structure", percentage: "28% of section, 13-15 questions", performance: "200-800", score: 200 },
             { name: "Information and Ideas", percentage: "26% of section, 12-14 questions", performance: "200-800", score: 200 },
-            { name: "Standard English Conventions", percentage: "26% of section, 11-15 questions", performance: "200-800", score: 200 },
+            { name: "Conventions of Standard English", percentage: "26% of section, 11-15 questions", performance: "200-800", score: 200 },
             { name: "Expression of Ideas", percentage: "20% of section, 8-12 questions", performance: "200-800", score: 200 }
         ]
     }
 };
+
 
 // Load user progress from Firestore
 async function loadUserProgressFromFirestore(userId) {
@@ -113,21 +114,30 @@ document.addEventListener("DOMContentLoaded", () => {
         return ((clampedScore - 200) / 600) * 100;
     }
 
-    function showMathContent() {
-        const mathData = userData.math;
-        
+    // Add to breakdown.js - Enhanced version
+
+function showMathContent() {
+    const mathData = userData.math;
+    
+    // Smooth transition
+    const skillsContainer = document.querySelector(".skills-section");
+    skillsContainer.style.opacity = '0';
+    
+    setTimeout(() => {
         document.querySelector(".score-display h2").textContent = "Math Knowledge";
         document.querySelector(".score-label").textContent = "Your Math Score";
-        document.querySelector(".score-value").textContent = mathData.totalScore;
         
-        const skillsHTML = mathData.skills.map(skill => `
-            <div class="skill-item">
+        // Animate score counting
+        animateScore(document.querySelector(".score-value"), mathData.totalScore, 1000);
+        
+        const skillsHTML = mathData.skills.map((skill, index) => `
+            <div class="skill-item" style="animation-delay: ${index * 0.1}s">
                 <div class="skill-header">
                     <span class="skill-name">${skill.name}</span>
-                    <span class="skill-meta">(${skill.percentage})</span>
+                    <span class="skill-meta">${skill.percentage}</span>
                 </div>
                 <div class="progress-bar-container">
-                    <div class="progress-bar" style="width: ${calculateWidth(skill.score)}%"></div>
+                    <div class="progress-bar" style="width: 0%" data-width="${calculateWidth(skill.score)}"></div>
                     <div class="progress-labels">
                         <span>200</span>
                         <span>800</span>
@@ -135,12 +145,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>
                 <div class="skill-footer">
                     <span class="performance-text">Performance: <strong>${skill.performance}</strong></span>
-                    <a href="#" class="skill-link">View Skills and Example Questions in next score band</a>
+                    <a href="#" class="skill-link">View Skills and Example Questions →</a>
                 </div>
             </div>
         `).join('');
         
-        const skillsContainer = document.querySelector(".skills-section");
         skillsContainer.innerHTML = `
             <h2>Math Skills Performance</h2>
             <p class="skills-description">
@@ -149,26 +158,61 @@ document.addEventListener("DOMContentLoaded", () => {
             </p>
             ${skillsHTML}
         `;
+        
+        // Animate progress bars
+        setTimeout(() => {
+            document.querySelectorAll('.progress-bar').forEach(bar => {
+                const width = bar.dataset.width;
+                bar.style.width = width + '%';
+            });
+        }, 100);
+        
+        skillsContainer.style.opacity = '1';
+        attachSkillLinkListeners();
+    }, 300);
+}
 
-            attachSkillLinkListeners();
+// Add score counting animation
+function animateScore(element, target, duration) {
+    const start = parseInt(element.textContent) || 0;
+    const increment = (target - start) / (duration / 16);
+    let current = start;
+    
+    const timer = setInterval(() => {
+        current += increment;
+        if ((increment > 0 && current >= target) || (increment < 0 && current <= target)) {
+            current = target;
+            clearInterval(timer);
+        }
+        element.textContent = Math.round(current);
+    }, 16);
+}
 
-    }
+// Apply same enhancements to showReadingContent()
 
     function showReadingContent() {
-        const readingData = userData.reading;
-        
+    const readingData = userData.reading;
+    
+    // Smooth transition
+    const skillsContainer = document.querySelector(".skills-section");
+    skillsContainer.style.opacity = '0';
+    skillsContainer.style.transition = 'opacity 0.3s ease';
+    
+    setTimeout(() => {
         document.querySelector(".score-display h2").textContent = "Reading and Writing Knowledge";
         document.querySelector(".score-label").textContent = "Your Reading and Writing Score";
-        document.querySelector(".score-value").textContent = readingData.totalScore;
         
-        const skillsHTML = readingData.skills.map(skill => `
-            <div class="skill-item">
+        // Animate score counting
+        animateScore(document.querySelector(".score-value"), readingData.totalScore, 1000);
+        
+        const skillsHTML = readingData.skills.map((skill, index) => `
+            <div class="skill-item" style="animation: fadeInUp 0.6s ease ${index * 0.1}s backwards">
                 <div class="skill-header">
                     <span class="skill-name">${skill.name}</span>
-                    <span class="skill-meta">(${skill.percentage})</span>
+                    <span class="skill-meta">${skill.percentage}</span>
                 </div>
                 <div class="progress-bar-container">
-                    <div class="progress-bar" style="width: ${calculateWidth(skill.score)}%"></div>
+                    <div class="progress-bar" style="width: 0%" data-width="${calculateWidth(skill.score)}"></div>
                     <div class="progress-labels">
                         <span>200</span>
                         <span>800</span>
@@ -176,12 +220,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>
                 <div class="skill-footer">
                     <span class="performance-text">Performance: <strong>${skill.performance}</strong></span>
-                    <a href="#" class="skill-link">View Skills and Example Questions in next score band</a>
+                    <a href="#" class="skill-link">View Skills and Example Questions →</a>
                 </div>
             </div>
         `).join('');
         
-        const skillsContainer = document.querySelector(".skills-section");
         skillsContainer.innerHTML = `
             <h2>Reading and Writing Skills Performance</h2>
             <p class="skills-description">
@@ -190,10 +233,31 @@ document.addEventListener("DOMContentLoaded", () => {
             </p>
             ${skillsHTML}
         `;
+        
+        // Animate progress bars
+        setTimeout(() => {
+            document.querySelectorAll('.progress-bar').forEach(bar => {
+                const width = bar.dataset.width;
+                bar.style.width = width + '%';
+            });
+        }, 100);
+        
+        skillsContainer.style.opacity = '1';
+        attachSkillLinkListeners();
+    }, 300);
+}
 
-            attachSkillLinkListeners();
 
-    }
+
+
+
+
+
+
+
+
+
+
 
     function attachSkillLinkListeners() {
     console.log("Attaching skill link listeners..."); // DEBUG
