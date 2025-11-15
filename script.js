@@ -91,6 +91,7 @@ onAuthStateChanged(auth, async (user) => {
     // Get element references here, OR make sure they are globally accessible
     const userInfoEl = document.getElementById("userInfo"); 
     const signInEl = document.getElementById("signIn");
+    const loginBtn = document.getElementById("google-sign-in-button");
     
     // Check if the page is currently loaded in the browser
     if (document.readyState === 'complete' || document.readyState === 'interactive') {
@@ -98,7 +99,9 @@ onAuthStateChanged(auth, async (user) => {
         if (user) {
             // --- USER IS SIGNED IN ---
 
-            document.getElementById("google-sign-in-button").classList.remove("add");
+            if (loginBtn){
+                loginBtn.classList.add("hidden");
+            }
 
             currentUserId = user.uid;
             console.log("User is signed in:", user.uid);
@@ -125,7 +128,9 @@ onAuthStateChanged(auth, async (user) => {
             currentUserId = null;
             console.log("No user logged in.");
 
-            document.getElementById("google-sign-in-button").classList.remove("hidden");
+            if (loginBtn){
+                loginBtn.classList.remove("hidden");
+            }
 
             // Show Login Button, Hide Profile Section
             if (signInEl) signInEl.style.display = 'block';
