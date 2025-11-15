@@ -3,7 +3,7 @@
 
 //firebase imported functions
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
-import { getAuth, signInWithCredential, GoogleAuthProvider, onAuthStateChanged, signOut, signInWithRedirect, getRedirectResult } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
+import { getAuth, signInWithCredential, GoogleAuthProvider, onAuthStateChanged, signOut, signInWithRedirect, getRedirectResult, signInWithPopup } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
 import { getFirestore, collection, doc, getDoc, setDoc, getDocs, query, where, addDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-analytics.js";
 
@@ -24,6 +24,7 @@ const app = initializeApp(firebaseConfig);
 // Get references to the services 
 export const auth = getAuth(app); 
 export const db = getFirestore(app); 
+console.log(auth);
 const analytics = getAnalytics(app);
 const googleProvider = new GoogleAuthProvider();
 
@@ -86,16 +87,22 @@ async function handleRedirectSignIn() {
     }
 }
 // Global Scope (Only one instance of this listener)
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, async (user) => {
     // Get element references here, OR make sure they are globally accessible
     const userInfoEl = document.getElementById("userInfo"); 
     const signInEl = document.getElementById("signIn");
+    const loginBtn = document.getElementById("google-sign-in-button");
     
     // Check if the page is currently loaded in the browser
     if (document.readyState === 'complete' || document.readyState === 'interactive') {
 
         if (user) {
             // --- USER IS SIGNED IN ---
+
+            if (loginBtn){
+                loginBtn.classList.add("hidden");
+            }
+
             currentUserId = user.uid;
             console.log("User is signed in:", user.uid);
 
@@ -109,7 +116,7 @@ onAuthStateChanged(auth, (user) => {
             // 2. Redirect to profile page if on landing page
             const currentPath = window.location.pathname;
             if (currentPath === "/index.html" || currentPath === "/" || currentPath.endsWith("index.html")) {
-                // window.location.replace("profile.html");
+                 //window.location.replace("profile.html");
             }
             // If you are on the profile page, call loadUserProgress() 
             if (currentPath.includes("profile.html")) {
@@ -120,6 +127,10 @@ onAuthStateChanged(auth, (user) => {
             // --- USER IS SIGNED OUT ---
             currentUserId = null;
             console.log("No user logged in.");
+
+            if (loginBtn){
+                loginBtn.classList.remove("hidden");
+            }
 
             // Show Login Button, Hide Profile Section
             if (signInEl) signInEl.style.display = 'block';
@@ -423,39 +434,51 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (loginBtn) {
         loginBtn.addEventListener("click", async() => {
-            try {
-                await signInWithRedirect(auth, googleProvider);
-            } catch (error) {
-                console.error("Sign-in redirect initiation error:", error);
-            }
+            signInWithPopup(auth, googleProvider)
+            .then((result) => {
+                const user = result.user;
+                console.log("User signed in:", user.displayName, user.email);
+
+                loadIndexPage();
+            })
+            .catch((error) => {
+                console.error("Error signing in:", error.message);
+            });
+            // try {
+            //     await signInWithRedirect(auth, googleProvider);
+            // } catch (error) {
+            //     console.error("Sign-in redirect initiation error:", error);
+            // }
         });
     }
 
     // Switch from landing → trainer
-    startBtn.addEventListener("click", async () => {
-        landingSection.classList.add("hidden");
-        trainerSection.classList.remove("hidden");
+    if (startBtn) {
+        startBtn.addEventListener("click", async () => {
+            landingSection.classList.add("hidden");
+            trainerSection.classList.remove("hidden");
 
-        // Create session and load questions
-        await createSession();
-        questions = await getAdaptiveQuestions(5);
-        
-        if (questions.length === 0) {
-            questionText.textContent = "No questions available. Please add questions to Firestore.";
-            return;
-        }
+            // Create session and load questions
+            await createSession();
+            questions = await getAdaptiveQuestions(5);
+            
+            if (questions.length === 0) {
+                questionText.textContent = "No questions available. Please add questions to Firestore.";
+                return;
+            }
 
-        currentIndex = 0;
-        loadQuestion();
-    });
-
+            currentIndex = 0;
+            loadQuestion();
+        });
+    }
     // Click logo → go back to home
-    homeLink.addEventListener("click", () => {
-        trainerSection.classList.add("hidden");
-        landingSection.classList.remove("hidden");
-        resetQuestionState();
-    });
-
+    if (homeLink) {
+        homeLink.addEventListener("click", () => {
+            trainerSection.classList.add("hidden");
+            landingSection.classList.remove("hidden");
+            resetQuestionState();
+        });
+    }
     // Load a question onto the card
     function loadQuestion() {
         if (currentIndex >= questions.length) {
@@ -517,62 +540,64 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Unsure button
-    unsureBtn.addEventListener("click", () => {
-        isUnsure = !isUnsure;
-        if (isUnsure) {
-            rationaleSection.classList.remove("hidden");
-            unsureBtn.textContent = "I'm confident";
-        } else {
-            rationaleSection.classList.add("hidden");
-            rationaleInput.value = "";
-            unsureBtn.textContent = "I'm unsure";
-        }
-    });
-
+    if (unsureBtn) {
+        unsureBtn.addEventListener("click", () => {
+            isUnsure = !isUnsure;
+            if (isUnsure) {
+                rationaleSection.classList.remove("hidden");
+                unsureBtn.textContent = "I'm confident";
+            } else {
+                rationaleSection.classList.add("hidden");
+                rationaleInput.value = "";
+                unsureBtn.textContent = "I'm unsure";
+            }
+        });
+    }
     // Submit answer
-    submitBtn.addEventListener("click", async () => {
-        if (!selectedAnswer) {
-            alert("Please select an answer first.");
-            return;
-        }
-        if (submitBtn.classList.contains("disabled")){
-            return;
-        }
+    if (submitBtn) {
+        submitBtn.addEventListener("click", async () => {
+            if (!selectedAnswer) {
+                alert("Please select an answer first.");
+                return;
+            }
+            if (submitBtn.classList.contains("disabled")){
+                return;
+            }
 
-        const currentQuestion = questions[currentIndex];
-        const isCorrect = selectedAnswer === currentQuestion.correctAnswer;
-        const rationale = isUnsure ? rationaleInput.value : '';
+            const currentQuestion = questions[currentIndex];
+            const isCorrect = selectedAnswer === currentQuestion.correctAnswer;
+            const rationale = isUnsure ? rationaleInput.value : '';
 
-        // Show feedback
-        showAnswerFeedback(isCorrect, currentQuestion);
+            // Show feedback
+            showAnswerFeedback(isCorrect, currentQuestion);
 
-        // Save to Firestore
-        await saveAnswerToSession(
-            currentQuestion.id,
-            selectedAnswer,
-            isCorrect,
-            rationale
-        );
+            // Save to Firestore
+            await saveAnswerToSession(
+                currentQuestion.id,
+                selectedAnswer,
+                isCorrect,
+                rationale
+            );
 
-        await updateUserProgress(
-            currentQuestion.id,
-            isCorrect,
-            currentQuestion.skillCategory,
-            currentQuestion.tags || []
-        );
+            await updateUserProgress(
+                currentQuestion.id,
+                isCorrect,
+                currentQuestion.skillCategory,
+                currentQuestion.tags || []
+            );
 
-        submitBtn.classList.add("disabled");
+            submitBtn.classList.add("disabled");
 
-        // If wrong and has rationale, get AI explanation
-        if (!isCorrect && rationale) {
-            await showAIExplanation(currentQuestion, selectedAnswer, rationale);
-        }
+            // If wrong and has rationale, get AI explanation
+            if (!isCorrect && rationale) {
+                await showAIExplanation(currentQuestion, selectedAnswer, rationale);
+            }
 
-        submitBtn.classList.add("hidden");
-        submitBtn.classList.remove("disabled");
-        nextBtn.classList.remove("hidden");
-    });
-
+            submitBtn.classList.add("hidden");
+            submitBtn.classList.remove("disabled");
+            nextBtn.classList.remove("hidden");
+        });
+    }
     function showAnswerFeedback(isCorrect, question) {
         answerFeedback.classList.remove("hidden");
         answerFeedback.className = `answer-feedback ${isCorrect ? 'correct' : 'incorrect'}`;
@@ -628,11 +653,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Next question
-    nextBtn.addEventListener("click", () => {
-        currentIndex++;
-        loadQuestion();
-    });
-
+    if (nextBtn) {
+        nextBtn.addEventListener("click", () => {
+            currentIndex++;
+            loadQuestion();
+        });
+    }
     function resetQuestionState() {
         questions = [];
         currentIndex = 0;
@@ -671,11 +697,12 @@ if (showBreakdownBtn) {
 }
 
 // Click logo to go back home (update existing code)
-homeLink.addEventListener("click", () => {
-  trainerSection.classList.add("hidden");
-  breakdownSection.classList.add("hidden");
-  landingSection.classList.remove("hidden");
-});
-
+if (homeLink) {
+    homeLink.addEventListener("click", () => {
+    trainerSection.classList.add("hidden");
+    breakdownSection.classList.add("hidden");
+    landingSection.classList.remove("hidden");
+    });
+}
 // --- END CHART.JS IMPLEMENTATION ---
 });

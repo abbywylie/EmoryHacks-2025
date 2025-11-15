@@ -122,13 +122,14 @@
   <!-- JS -->
   <script type="module">
     import './script.js';
-    import {loadProfilePage} from './profile.js';
+    import { loadProfilePage } from './profile.js';
     import './theme-loader.js';
     import { auth } from "./script.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
 
     document.addEventListener("DOMContentLoaded", () => {
       onAuthStateChanged(auth, (user) => {
+        loadProfilePage();
         if (!user) {
           window.location.replace("index.html");
         } else {
