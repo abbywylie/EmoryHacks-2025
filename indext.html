@@ -11,12 +11,63 @@
 
 
 <body>
+  <!-- Sidebar Navigation -->
+  <nav class="sidebar-nav">
+    <div class="sidebar-logo">StudyDeck<span>.</span></div>
+    <div class="sidebar-nav-links">
+      <a href="indext.html" class="sidebar-nav-link active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+          <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
+        <span>Home</span>
+      </a>
+      <a href="breakdown.html" class="sidebar-nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="20" x2="12" y2="10"></line>
+          <line x1="18" y1="20" x2="18" y2="4"></line>
+          <line x1="6" y1="20" x2="6" y2="16"></line>
+        </svg>
+        <span>Progress</span>
+      </a>
+      <a href="rewards/rewards.html" class="sidebar-nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+        </svg>
+        <span>Rewards</span>
+      </a>
+      <a href="profile.html" class="sidebar-nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+        <span>Profile</span>
+      </a>
+    </div>
+  </nav>
+
   <div class="app">
 
     <!-- Navigation -->
+    <!-- Navigation -->
     <header class="top-nav">
-      <div class="logo" id="home-link">StudyDeck<span>.</span></div>
-      <div class="nav-tagline">Smarter practice. Less time.</div>
+      <div class="nav-left">
+        <div class="logo" id="home-link">StudyDeck<span>.</span></div>
+        <div class="nav-tagline">Smarter practice. Less time.</div>
+      </div>
+      <div class="nav-right">
+        <a href="breakdown.html" class="nav-btn">View Progress</a>
+        <a href="rewards/rewards.html" class="nav-btn">Rewards</a>
+        <!--Google Login-->
+        <div id="g_id_onload" data-client_id="1038908932530-vidvtvlcbpimnt0on6qo2kp0dc8tnomq.apps.googleusercontent.com"
+          data-callback="handleCredentialResponse">
+        </div>
+        <div id="userInfo">
+          <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="sign_in_with"
+            data-shape="rectangular" data-logo_alignment="center" id="signIn">
+          </div>
+        </div>
+      </div>
     </header>
 
     <main>
@@ -38,94 +89,88 @@
           </button>
         </div>
 
-        <!-- Preview Card -->
-        <div class="hero-card">
-          <div class="card-label">Preview</div>
-
-          <div class="card">
-            <div class="card-topic">Reading · Inference</div>
-
-            <div class="card-question">
-              The author most likely includes this detail in order to...
-            </div>
-
-            <textarea class="card-input" placeholder="Type how you’d answer or what you’re thinking…"></textarea>
-
-            <div class="card-actions">
-              <button class="ghost-btn">Skip</button>
-              <button class="primary-btn small">Next</button>
-            </div>
-          </div>
-        </div>
       </section>
 
       <!-- ================================ -->
-      <!-- TRAINER PAGE (HIDDEN AT START) -->
+      <!-- TRAINER SECTION -->
       <!-- ================================ -->
 
       <section id="trainer" class="trainer hidden">
-
-        <div class="trainer-main">
-
-          <!-- session tags -->
+        <div class="card large">
           <div class="session-meta">
-            <div class="chip">Session · 5 questions</div>
-            <div class="chip" id="topic-chip">Topic: —</div>
+            <span class="chip" id="topic-chip">Topic: Loading...</span>
+            <span class="card-progress" id="question-counter">Question 0 / 0</span>
+          </div>
+          
+          <div class="card-question" id="card-question-text">
+            Loading question...
           </div>
 
-          <!-- Active Question Card -->
-          <div class="card large">
+          <!-- Multiple Choice Options -->
+          <div id="question-options" class="question-options">
+            <!-- Options will be dynamically inserted here -->
+          </div>
 
-            <div class="card-progress">
-              <span id="question-counter">Question 1 / 5</span>
-            </div>
+          <!-- Rationale Section (shown when unsure) -->
+          <div id="rationale-section" class="rationale-section hidden">
+            <label class="card-label">Explain your reasoning:</label>
+            <textarea 
+              id="rationale-input" 
+              class="card-input" 
+              placeholder="Why did you choose this answer? What were you thinking?"
+              rows="4"
+            ></textarea>
+          </div>
 
-            <div id="card-question-text" class="card-question">
-              <!-- filled by JS -->
-            </div>
+          <!-- Answer Feedback -->
+          <div id="answer-feedback" class="answer-feedback hidden">
+            <!-- Feedback will be shown here -->
+          </div>
 
-            <textarea id="card-answer-input" class="card-input"
-              placeholder="Write your answer, your reasoning, or bullet points…"></textarea>
+          <!-- AI Explanation Panel -->
+          <div id="ai-explanation-panel" class="ai-explanation-panel hidden">
+            <!-- AI explanation will be shown here -->
+          </div>
 
-            <div class="card-actions">
-              <button id="show-note" class="ghost-btn">I don’t know</button>
-              <button id="next-question" class="primary-btn">Save & next</button>
-            </div>
-
-            <div id="helper-note" class="helper-note hidden">
-              That’s okay — just type anything you’re thinking. We’ll use this
-              later to understand your patterns, not to grade you.
-            </div>
+          <div class="card-actions">
+            <button id="unsure-btn" class="ghost-btn">I'm unsure</button>
+            <button id="submit-answer" class="primary-btn">Submit Answer</button>
+            <button id="next-question" class="primary-btn hidden">Next Question</button>
           </div>
         </div>
 
-        <!-- Sidebar -->
-        <aside class="trainer-sidebar">
-          <h2>Your snapshot</h2>
-          <p class="sidebar-text">
-            As you answer, we’ll highlight what you seem confident in and what
-            might need more practice.
-          </p>
-
-          <ul class="sidebar-list">
-            <li><span id="stat-reading">Reading: —</span></li>
-            <li><span id="stat-writing">Writing: —</span></li>
-            <li><span id="stat-math">Math: —</span></li>
+        <div class="trainer-sidebar">
+          <h2>Session Progress</h2>
+          <p class="sidebar-text">Your answers are being tracked to personalize future sessions.</p>
+          <ul class="sidebar-list" id="session-summary">
+            <!-- Session summary will be shown here -->
           </ul>
-
-          <p class="sidebar-footnote">
-            The adaptive engine will go here next — follow-up decks,
-            recommendations, and skill targeting.
-          </p>
-        </aside>
+          <p class="sidebar-footnote">Questions adapt based on your performance.</p>
+        </div>
       </section>
+
+      <!-- ================================ -->
+      <!-- SAT BREAKDOWN PAGE -->
+      <!-- ================================ -->
+
+
 
     </main>
   </div>
 
   <!-- JS -->
-
-  <script src="script.js" type="module"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script type="module">
+    import './script.js';
+    import './profile.js';
+    import './theme-loader.js';
+    import { loadIndextPage } from './profile.js';
+    loadIndextPage();
+  </script>
+  <!-- <script src="https://apis.google.com/js/platform.js" async defer></script> -->
+  <meta name="google-signin-client_id"
+    content="1038908932530-vidvtvlcbpimnt0on6qo2kp0dc8tnomq.apps.googleusercontent.com">
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </body>
 
 </html>
