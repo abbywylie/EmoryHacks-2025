@@ -35,6 +35,46 @@ document.getElementById('start-session').addEventListener('click', () => {
     // authentication and session start logic
 });
 
+async function fetchNextQuestion() {
+const targetTopic = "SAT_Math: Linear Equations"; // Example topic
+try {
+    const questionsRef = db.collection("questions");
+    const snapshot = await questionsRef.where("topic", "==", targetTopic).limit(1).get();
+    if (snapshot.empty) {
+        console.log("No matching questions found.");
+        return null;
+    }
+    currentQuestion = snapshot.docs[0].data();
+    updateQuestionCard(currentQuestion);
+} catch (error) {
+    console.error("Error fetching question:", error);
+}
+}
+
+function handleQuestionAnswer(){
+    const userAnswer = document.getElementById("card-answer-input").value;
+    //compare to correct answer and update progress
+    const isCorrect = userAnswer === currentQuestion.correctAnswer;
+    if (isCorrect) {
+        
+    }
+    currentUserProgress[currentQuestion.id] = {}
+    //save progress to Firestore
+    const userProgressRef = db.collection("userProgress").doc(currentUserId);
+    userProgressRef.set({
+        [currentQuestion.id]: {
+            answer: userAnswer,
+            correct: userAnswer === currentQuestion.correctAnswer
+        }
+    }, { merge: true });
+}
+
+function updateQuestionCard(question) {
+    document.getElementById('topic-chip').textContent = `Topic: ${question.topic}`;
+    document.getElementById('card-question-text').textContent = question.text;
+    document.getElementById('question-counter').textContent = `Question ${currentIndex + 1} / ${questions.length}`;
+    document.getElementById('card-answer-input').value = "";
+}
 
 
 document.addEventListener("DOMContentLoaded", () => {

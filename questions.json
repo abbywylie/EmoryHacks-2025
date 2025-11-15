@@ -10,6 +10,8 @@
     "applicableTests": ["SAT"],
     "tags": ["linear equations", "algebra"],
     "isMultipleChoice": true,
+    "isRW": false,
+    "passage": null,
     "isImageQuestion": false,
     "imageUrl": null
 }
