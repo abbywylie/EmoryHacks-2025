@@ -22,13 +22,8 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 
 // Get references to the services 
-<<<<<<< Updated upstream
-export const auth = getAuth(app); 
-export const db = getFirestore(app); 
-=======
 export const auth = getAuth(app);
 export const db = getFirestore(app);
->>>>>>> Stashed changes
 console.log(auth);
 const analytics = getAnalytics(app);
 const googleProvider = new GoogleAuthProvider();
@@ -49,7 +44,7 @@ export async function signInWithGoogle(credential) {
         // Initialize user progress in Firestore if it doesn't exist
         const userProgressRef = doc(db, 'users', user.uid, 'progress', 'data');
         const userProgressSnap = await getDoc(userProgressRef);
-        
+
         if (!userProgressSnap.exists()) {
             await setDoc(userProgressRef, {
                 wrongQuestions: [],
@@ -69,7 +64,7 @@ export async function signInWithGoogle(credential) {
                 sessions: [],
                 createdAt: new Date()
             });
-        }        localStorage.setItem("logged-in", "true");
+        } localStorage.setItem("logged-in", "true");
         localStorage.setItem("firebase_user_id", user.uid);
         return user;
     } catch (error) {
@@ -107,22 +102,13 @@ onAuthStateChanged(auth, async (user) => {
     const userInfoEl = document.getElementById("userInfo");
     const signInEl = document.getElementById("signIn");
     const loginBtn = document.getElementById("google-sign-in-button");
-<<<<<<< Updated upstream
-    
-=======
-
->>>>>>> Stashed changes
     // Check if the page is currently loaded in the browser
     if (document.readyState === 'complete' || document.readyState === 'interactive') {
 
         if (user) {
             // --- USER IS SIGNED IN ---
 
-<<<<<<< Updated upstream
-            if (loginBtn){
-=======
             if (loginBtn) {
->>>>>>> Stashed changes
                 loginBtn.classList.add("hidden");
             }
 
@@ -139,11 +125,7 @@ onAuthStateChanged(auth, async (user) => {
             // 2. Redirect to profile page if on landing page
             const currentPath = window.location.pathname;
             if (currentPath === "/index.html" || currentPath === "/" || currentPath.endsWith("index.html")) {
-<<<<<<< Updated upstream
-                 //window.location.replace("profile.html");
-=======
                 //window.location.replace("profile.html");
->>>>>>> Stashed changes
             }
             // If you are on the profile page, call loadUserProgress() 
             if (currentPath.includes("profile.html")) {
@@ -155,11 +137,7 @@ onAuthStateChanged(auth, async (user) => {
             currentUserId = null;
             console.log("No user logged in.");
 
-<<<<<<< Updated upstream
-            if (loginBtn){
-=======
             if (loginBtn) {
->>>>>>> Stashed changes
                 loginBtn.classList.remove("hidden");
             }
 
@@ -420,17 +398,41 @@ export async function updateUserProgress(questionId, isCorrect, skillCategory, t
             if (tags && tags.length > 0) {
                 // Map common tags to SAT skill categories
                 const tagToCategory = {
+                    // Math categories
                     'algebra': 'Algebra',
                     'linear equations': 'Algebra',
                     'quadratic': 'Algebra',
+                    'systems of equations': 'Algebra',
                     'advanced math': 'Advanced Math',
                     'functions': 'Advanced Math',
-                    'geometry': 'Geometry & Trigonometry',
-                    'trigonometry': 'Geometry & Trigonometry',
-                    'data analysis': 'Problem Solving & Data Analysis',
-                    'statistics': 'Problem Solving & Data Analysis',
-                    'probability': 'Problem Solving & Data Analysis',
-                    'ratios': 'Problem Solving & Data Analysis'
+                    'polynomial': 'Advanced Math',
+                    'exponential': 'Advanced Math',
+                    'geometry': 'Geometry and Trigonometry',
+                    'trigonometry': 'Geometry and Trigonometry',
+                    'circles': 'Geometry and Trigonometry',
+                    'triangles': 'Geometry and Trigonometry',
+                    'data analysis': 'Problem-Solving and Data Analysis',
+                    'statistics': 'Problem-Solving and Data Analysis',
+                    'probability': 'Problem-Solving and Data Analysis',
+                    'ratios': 'Problem-Solving and Data Analysis',
+                    'percentages': 'Problem-Solving and Data Analysis',
+                    // Reading & Writing categories
+                    'craft and structure': 'Craft & Structure',
+                    'words in context': 'Craft & Structure',
+                    'text structure': 'Craft & Structure',
+                    'purpose': 'Craft & Structure',
+                    'information and ideas': 'Information and Ideas',
+                    'central ideas': 'Information and Ideas',
+                    'supporting details': 'Information and Ideas',
+                    'inferences': 'Information and Ideas',
+                    'standard english conventions': 'Conventions of Standard English',
+                    'grammar': 'Conventions of Standard English',
+                    'punctuation': 'Conventions of Standard English',
+                    'sentence structure': 'Conventions of Standard English',
+                    'expression of ideas': 'Expression of Ideas',
+                    'rhetoric': 'Expression of Ideas',
+                    'transitions': 'Expression of Ideas',
+                    'style': 'Expression of Ideas'
                 };
 
                 // Find matching category from tags
@@ -481,19 +483,19 @@ export async function updateUserProgress(questionId, isCorrect, skillCategory, t
 // Get all wrong question IDs for a specific category/skill
 export async function getWrongQuestionsByCategory(categoryName) {
     if (!currentUserId) return [];
-    
+
     try {
         const progressRef = doc(db, 'users', currentUserId, 'progress', 'data');
         const progressSnap = await getDoc(progressRef);
-        
+
         if (!progressSnap.exists()) return [];
-        
+
         const data = progressSnap.data();
         const wrongQuestionsByCategory = data.wrongQuestionsByCategory || {};
-        
+
         // Normalize category name (replace spaces with underscores)
         const categoryKey = categoryName.replace(/\s+/g, '_');
-        
+
         return wrongQuestionsByCategory[categoryKey] || [];
     } catch (error) {
         console.error("Error getting wrong questions by category:", error);
@@ -504,20 +506,20 @@ export async function getWrongQuestionsByCategory(categoryName) {
 // Load full question data for wrong questions in a category
 export async function loadWrongQuestionsForCategory(categoryName) {
     const questionIds = await getWrongQuestionsByCategory(categoryName);
-    
+
     if (questionIds.length === 0) return [];
-    
+
     try {
         // Fetch all questions from Firestore questions collection
         const questionsRef = collection(db, 'questions');
         const q = query(questionsRef, where('id', 'in', questionIds.slice(0, 10))); // Firestore 'in' query limited to 10
         const querySnapshot = await getDocs(q);
-        
+
         const questions = [];
         querySnapshot.forEach((doc) => {
             questions.push(doc.data());
         });
-        
+
         return questions;
     } catch (error) {
         console.error("Error loading wrong questions:", error);
@@ -579,19 +581,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const loginBtn = document.getElementById("google-sign-in-button");
 
     if (loginBtn) {
-<<<<<<< Updated upstream
-        loginBtn.addEventListener("click", async() => {
-            signInWithPopup(auth, googleProvider)
-            .then((result) => {
-                const user = result.user;
-                console.log("User signed in:", user.displayName, user.email);
-
-                loadIndexPage();
-            })
-            .catch((error) => {
-                console.error("Error signing in:", error.message);
-            });
-=======
         loginBtn.addEventListener("click", async () => {
             signInWithPopup(auth, googleProvider)
                 .then((result) => {
@@ -603,7 +592,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 .catch((error) => {
                     console.error("Error signing in:", error.message);
                 });
->>>>>>> Stashed changes
             // try {
             //     await signInWithRedirect(auth, googleProvider);
             // } catch (error) {
@@ -621,11 +609,6 @@ document.addEventListener("DOMContentLoaded", () => {
             // Create session and load questions
             await createSession();
             questions = await getAdaptiveQuestions(5);
-<<<<<<< Updated upstream
-            
-=======
-
->>>>>>> Stashed changes
             if (questions.length === 0) {
                 questionText.textContent = "No questions available. Please add questions to Firestore.";
                 return;
@@ -724,11 +707,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 alert("Please select an answer first.");
                 return;
             }
-<<<<<<< Updated upstream
-            if (submitBtn.classList.contains("disabled")){
-=======
             if (submitBtn.classList.contains("disabled")) {
->>>>>>> Stashed changes
                 return;
             }
 
@@ -751,12 +730,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 currentQuestion.id,
                 isCorrect,
                 currentQuestion.skillCategory,
-<<<<<<< Updated upstream
-                currentQuestion.tags || []
-=======
                 currentQuestion.tags || [],
                 currentQuestion
->>>>>>> Stashed changes
             );
 
             submitBtn.classList.add("disabled");
@@ -869,17 +844,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-<<<<<<< Updated upstream
-// Click logo to go back home (update existing code)
-if (homeLink) {
-    homeLink.addEventListener("click", () => {
-    trainerSection.classList.add("hidden");
-    breakdownSection.classList.add("hidden");
-    landingSection.classList.remove("hidden");
-    });
-}
-// --- END CHART.JS IMPLEMENTATION ---
-=======
     // Click logo to go back home (update existing code)
     if (homeLink) {
         homeLink.addEventListener("click", () => {
@@ -889,5 +853,4 @@ if (homeLink) {
         });
     }
     // --- END CHART.JS IMPLEMENTATION ---
->>>>>>> Stashed changes
 });

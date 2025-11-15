@@ -65,8 +65,6 @@
       <div class="nav-right">
         <a href="breakdown.html" class="nav-btn">View Progress</a>
         <a href="rewards/rewards.html" class="nav-btn">Rewards</a>
-<<<<<<< Updated upstream
-=======
         <!--Google Login-->
         <!-- <div id="g_id_onload" data-client_id="1038908932530-vidvtvlcbpimnt0on6qo2kp0dc8tnomq.apps.googleusercontent.com"
           data-callback="handleCredentialResponse">
@@ -78,104 +76,93 @@
         </div> -->
         <button id="google-sign-in-button" class="primary-btn hidden">Sign in with Google</button>
         <div id="userInfo">
-          
-        </div>
->>>>>>> Stashed changes
-      </div>
-      <div id="userInfo">
-        <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="sign_in_with"
-          data-shape="rectangular" data-logo_alignment="center" id="signIn">
-        </div>
-      </div> -->
-      <button id="google-sign-in-button" class="primary-btn hidden">Sign in with Google</button>
-      <div id="userInfo">
 
-      </div>
-  </div>
-  </header>
-
-  <main>
-
-    <!-- ================================ -->
-    <!-- LANDING PAGE -->
-    <!-- ================================ -->
-
-    <section id="landing" class="landing">
-      <div class="hero">
-        <h1>5-minute SAT drills that learn how you think.</h1>
-        <p>
-          Answer short, Anki-style questions and we’ll learn which concepts
-          you struggle with so we can target your next session where it
-          matters most.
-        </p>
-        <button id="start-session" class="primary-btn">
-          Start a quick session
-        </button>
-      </div>
-
-    </section>
-
-    <!-- ================================ -->
-    <!-- TRAINER SECTION -->
-    <!-- ================================ -->
-
-    <section id="trainer" class="trainer hidden">
-      <div class="card large">
-        <div class="session-meta">
-          <span class="chip" id="topic-chip">Topic: Loading...</span>
-          <span class="card-progress" id="question-counter">Question 0 / 0</span>
-        </div>
-
-        <div class="card-question" id="card-question-text">
-          Loading question...
-        </div>
-
-        <!-- Multiple Choice Options -->
-        <div id="question-options" class="question-options">
-          <!-- Options will be dynamically inserted here -->
-        </div>
-
-        <!-- Rationale Section (shown when unsure) -->
-        <div id="rationale-section" class="rationale-section hidden">
-          <label class="card-label">Explain your reasoning:</label>
-          <textarea id="rationale-input" class="card-input"
-            placeholder="Why did you choose this answer? What were you thinking?" rows="4"></textarea>
-        </div>
-
-        <!-- Answer Feedback -->
-        <div id="answer-feedback" class="answer-feedback hidden">
-          <!-- Feedback will be shown here -->
-        </div>
-
-        <!-- AI Explanation Panel -->
-        <div id="ai-explanation-panel" class="ai-explanation-panel hidden">
-          <!-- AI explanation will be shown here -->
-        </div>
-
-        <div class="card-actions">
-          <button id="unsure-btn" class="ghost-btn">I'm unsure</button>
-          <button id="submit-answer" class="primary-btn">Submit Answer</button>
-          <button id="next-question" class="primary-btn hidden">Next Question</button>
         </div>
       </div>
+    </header>
 
-      <div class="trainer-sidebar">
-        <h2>Session Progress</h2>
-        <p class="sidebar-text">Your answers are being tracked to personalize future sessions.</p>
-        <ul class="sidebar-list" id="session-summary">
-          <!-- Session summary will be shown here -->
-        </ul>
-        <p class="sidebar-footnote">Questions adapt based on your performance.</p>
-      </div>
-    </section>
+    <main>
 
-    <!-- ================================ -->
-    <!-- SAT BREAKDOWN PAGE -->
-    <!-- ================================ -->
+      <!-- ================================ -->
+      <!-- LANDING PAGE -->
+      <!-- ================================ -->
+
+      <section id="landing" class="landing">
+        <div class="hero">
+          <h1>5-minute SAT drills that learn how you think.</h1>
+          <p>
+            Answer short, Anki-style questions and we’ll learn which concepts
+            you struggle with so we can target your next session where it
+            matters most.
+          </p>
+          <button id="start-session" class="primary-btn">
+            Start a quick session
+          </button>
+        </div>
+
+      </section>
+
+      <!-- ================================ -->
+      <!-- TRAINER SECTION -->
+      <!-- ================================ -->
+
+      <section id="trainer" class="trainer hidden">
+        <div class="card large">
+          <div class="session-meta">
+            <span class="chip" id="topic-chip">Topic: Loading...</span>
+            <span class="card-progress" id="question-counter">Question 0 / 0</span>
+          </div>
+
+          <div class="card-question" id="card-question-text">
+            Loading question...
+          </div>
+
+          <!-- Multiple Choice Options -->
+          <div id="question-options" class="question-options">
+            <!-- Options will be dynamically inserted here -->
+          </div>
+
+          <!-- Rationale Section (shown when unsure) -->
+          <div id="rationale-section" class="rationale-section hidden">
+            <label class="card-label">Explain your reasoning:</label>
+            <textarea id="rationale-input" class="card-input"
+              placeholder="Why did you choose this answer? What were you thinking?" rows="4"></textarea>
+          </div>
+
+          <!-- Answer Feedback -->
+          <div id="answer-feedback" class="answer-feedback hidden">
+            <!-- Feedback will be shown here -->
+          </div>
+
+          <!-- AI Explanation Panel -->
+          <div id="ai-explanation-panel" class="ai-explanation-panel hidden">
+            <!-- AI explanation will be shown here -->
+          </div>
+
+          <div class="card-actions">
+            <button id="unsure-btn" class="ghost-btn">I'm unsure</button>
+            <button id="submit-answer" class="primary-btn">Submit Answer</button>
+            <button id="next-question" class="primary-btn hidden">Next Question</button>
+          </div>
+        </div>
+
+        <div class="trainer-sidebar">
+          <h2>Session Progress</h2>
+          <p class="sidebar-text">Your answers are being tracked to personalize future sessions.</p>
+          <ul class="sidebar-list" id="session-summary">
+            <!-- Session summary will be shown here -->
+          </ul>
+          <p class="sidebar-footnote">Questions adapt based on your performance.</p>
+        </div>
+      </section>
+
+      <!-- ================================ -->
+      <!-- SAT BREAKDOWN PAGE -->
+      <!-- ================================ -->
 
 
 
-  </main>
+    </main>
   </div>
 
   <!-- JS -->

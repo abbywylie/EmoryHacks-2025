@@ -172,6 +172,14 @@ async function loadAndRenderWrongQuestions(selectedSkill) {
             questions = mockWrongQuestions[selectedSkill] || [];
         }
         
+        // Update header with question count
+        const headerEl = document.getElementById('questions-header');
+        if (headerEl) {
+            headerEl.textContent = questions.length > 0 
+                ? `Questions You Got Wrong (${questions.length})` 
+                : 'Questions You Got Wrong';
+        }
+        
         if (questions.length === 0) {
             container.innerHTML = `
                 <div class="no-questions-review">
