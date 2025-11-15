@@ -255,6 +255,13 @@ main {
     margin-bottom: 0.4rem;
 }
 
+.right-aligned {
+    display: block;
+    text-align: right;
+    margin-left: auto;
+    margin-right: 0;
+}
+
 /* Utilities */
 
 .hidden {
