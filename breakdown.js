@@ -57,14 +57,14 @@ async function loadUserProgressFromFirestore(userId) {
         // Access user document directly where skillScores is a map field
         const userRef = doc(db, 'users', userId);
         const userSnap = await getDoc(userRef);
-        
+
         // Check if user document exists
         if (!userSnap.exists()) {
             console.log("No user data found.");
             showEmptyState(); // Show welcome message
             return;
         }
-        
+
         const userData_firebase = userSnap.data();
         const skillScores = userData_firebase.skillScores || {};
 
@@ -92,11 +92,11 @@ async function loadUserProgressFromFirestore(userId) {
 
         // If we get here, user has data. Show the progress.
         showProgressState(); // Show the real score cards
-        
+
         // Calculate scores for each skill category
         const mathSkills = userData.math.skills;
         const readingSkills = userData.reading.skills;
-        
+
         // Update math skills with accuracy = correct / total
         mathSkills.forEach(skill => {
             const skillName = skill.name;
@@ -113,7 +113,7 @@ async function loadUserProgressFromFirestore(userId) {
                 skill.performance = `0% (0/0)`;
             }
         });
-        
+
         // Update reading skills with accuracy = correct / total
         readingSkills.forEach(skill => {
             const skillName = skill.name;
@@ -129,12 +129,12 @@ async function loadUserProgressFromFirestore(userId) {
                 skill.performance = `0% (0/0)`;
             }
         });
-        
+
         // Calculate projected SAT scores based on overall performance
         // SAT Math is out of 800, SAT R&W is out of 800 (total 1600)
         const mathSkillsWithData = mathSkills.filter(s => skillScores[s.name]?.total > 0);
         const readingSkillsWithData = readingSkills.filter(s => skillScores[s.name]?.total > 0);
-        
+
         // If we have data, calculate weighted average based on question counts
         if (mathSkillsWithData.length > 0) {
             const mathAvg = mathSkillsWithData.reduce((sum, s) => sum + s.score, 0) / mathSkillsWithData.length;
@@ -142,14 +142,14 @@ async function loadUserProgressFromFirestore(userId) {
         } else {
             userData.math.totalScore = 0;
         }
-        
+
         if (readingSkillsWithData.length > 0) {
             const readingAvg = readingSkillsWithData.reduce((sum, s) => sum + s.score, 0) / readingSkillsWithData.length;
             userData.reading.totalScore = Math.round(readingAvg);
         } else {
             userData.reading.totalScore = 0;
         }
-        
+
         // Update the UI
         updateUserData(userData);
     } catch (error) {
@@ -172,7 +172,7 @@ function animateScore(element, target, duration) {
     const start = parseInt(element.textContent) || 0;
     const increment = (target - start) / (duration / 16);
     let current = start;
-    
+
     const timer = setInterval(() => {
         current += increment;
         if ((increment > 0 && current >= target) || (increment < 0 && current <= target)) {
@@ -187,19 +187,19 @@ function attachSkillLinkListeners() {
     console.log("Attaching skill link listeners...");
     const skillLinks = document.querySelectorAll('.skill-link');
     console.log("Found", skillLinks.length, "skill links");
-    
+
     skillLinks.forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
             console.log("Link clicked!");
-            
+
             const skillItem = link.closest('.skill-item');
             const skillName = skillItem.querySelector('.skill-name').textContent;
             console.log("Skill name:", skillName);
-            
+
             localStorage.setItem('selectedSkill', skillName);
             console.log("Stored in localStorage, now redirecting...");
-            
+
             window.location.href = 'skill-questions.html';
         });
     });
@@ -216,7 +216,7 @@ document.addEventListener("DOMContentLoaded", () => {
             console.log("No user logged in. Showing empty state.");
         }
     });
-    
+
     const tabButtons = document.querySelectorAll(".tab-btn");
 
     tabButtons.forEach((button, index) => {
@@ -236,7 +236,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // Math Content Display Function
 function showMathContent() {
     const mathData = userData.math;
-    
+
     // Smooth transition
     const skillsContainer = document.querySelector(".skills-section");
     const scoreContainer = document.querySelector(".score-display"); // Get score container
@@ -244,7 +244,7 @@ function showMathContent() {
 
     skillsContainer.style.opacity = '0';
     scoreContainer.style.opacity = '0';
-    
+
     setTimeout(() => {
         const displayValue = mathData.totalScore === null ? "Loading..." : mathData.totalScore;
         scoreContainer.innerHTML = `
@@ -254,12 +254,12 @@ function showMathContent() {
                 <div class="score-value" id="score-value-display">${displayValue}</div>
             </div>
         `;
-        
+
         // Animate score counting (only if not loading)
         if (mathData.totalScore !== null) {
             animateScore(document.getElementById("score-value-display"), mathData.totalScore, 1000);
         }
-        
+
         const skillsHTML = mathData.skills.map((skill, index) => `
             <div class="skill-item" style="animation-delay: ${index * 0.1}s">
                 <div class="skill-header">
@@ -279,7 +279,7 @@ function showMathContent() {
                 </div>
             </div>
         `).join('');
-        
+
         skillsContainer.innerHTML = `
             <h2>Math Skills Performance</h2>
             <p class="skills-description">
@@ -288,7 +288,7 @@ function showMathContent() {
             </p>
             ${skillsHTML}
         `;
-        
+
         // Animate progress bars
         setTimeout(() => {
             document.querySelectorAll('.progress-bar').forEach(bar => {
@@ -296,7 +296,7 @@ function showMathContent() {
                 bar.style.width = width + '%';
             });
         }, 100);
-        
+
         skillsContainer.style.opacity = '1';
         scoreContainer.style.opacity = '1';
         attachSkillLinkListeners();
@@ -306,7 +306,7 @@ function showMathContent() {
 // Reading Content Display Function
 function showReadingContent() {
     const readingData = userData.reading;
-    
+
     // Smooth transition
     const skillsContainer = document.querySelector(".skills-section");
     const scoreContainer = document.querySelector(".score-display"); // Get score container
@@ -316,7 +316,7 @@ function showReadingContent() {
     scoreContainer.style.opacity = '0';
     skillsContainer.style.transition = 'opacity 0.3s ease';
     scoreContainer.style.transition = 'opacity 0.3s ease';
-    
+
     setTimeout(() => {
         const displayValue = readingData.totalScore === null ? "Loading..." : readingData.totalScore;
         scoreContainer.innerHTML = `
@@ -326,12 +326,12 @@ function showReadingContent() {
                 <div class="score-value" id="score-value-display">${displayValue}</div>
             </div>
         `;
-        
+
         // Animate score counting (only if not loading)
         if (readingData.totalScore !== null) {
             animateScore(document.getElementById("score-value-display"), readingData.totalScore, 1000);
         }
-        
+
         const skillsHTML = readingData.skills.map((skill, index) => `
             <div class="skill-item" style="animation: fadeInUp 0.6s ease ${index * 0.1}s backwards">
                 <div class="skill-header">
@@ -351,7 +351,7 @@ function showReadingContent() {
                 </div>
             </div>
         `).join('');
-        
+
         skillsContainer.innerHTML = `
             <h2>Reading and Writing Skills Performance</h2>
             <p class="skills-description">
@@ -360,7 +360,7 @@ function showReadingContent() {
             </p>
             ${skillsHTML}
         `;
-        
+
         // Animate progress bars
         setTimeout(() => {
             document.querySelectorAll('.progress-bar').forEach(bar => {
@@ -368,7 +368,7 @@ function showReadingContent() {
                 bar.style.width = width + '%';
             });
         }, 100);
-        
+
         skillsContainer.style.opacity = '1';
         scoreContainer.style.opacity = '1';
         attachSkillLinkListeners();

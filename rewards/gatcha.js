@@ -91,15 +91,10 @@ const themePool = [
 // Combine all rewards - this is our reference pool
 const allRewardPool = [...rewardPool, ...themePool];
 
-// Helper function to get item details from name
-function getItemByName(itemName) {
-    return allRewardPool.find(item => item.name === itemName);
-}
-
-let tickets = 3;
-let inventory = []; // Array of item names (strings)
-let equippedIcon = null; // String: item name
-let equippedTheme = null; // String: item name
+let tickets = 0;
+let inventory = [];
+let equippedIcon = null;
+let equippedTheme = null;
 let currentUserId = null;
 
 // Load user inventory and equipped items from Firestore
@@ -240,6 +235,15 @@ document.addEventListener("DOMContentLoaded", () => {
         if (user) {
             currentUserId = user.uid;
             await loadUserInventory(user.uid);
+            const userRef = doc(db, "Users", user.uid);
+            const userSnap = await getDoc(userRef);
+            if (userSnap.exists()) {
+                const userData = userSnap.data();
+                tickets = data.points ?? 0;
+                updateTickets
+            } else {
+                console.warn("User document not found, initializing with 0 tickets");
+            }
             renderInventory();
         } else {
             currentUserId = null;
@@ -268,7 +272,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     // Fetch item details from name
                     const item = getItemByName(itemName);
                     if (!item) return ''; // Skip if item not found
-                    
+
                     const isEquipped = (item.type === 'avatar' && equippedIcon === itemName) ||
                         (item.type === 'theme' && equippedTheme === itemName);
                     return `
@@ -342,6 +346,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
         tickets--;
         updateTickets();
+        if (currentUserId) {
+            const userRef = doc(db, "Users", currentUserId);
+            await updateDoc(userRef, {
+                points: tickets
+            });
+        }
 
         // Randomly choose between icon and theme (80% icon, 20% theme)
         const isTheme = Math.random() < 0.2;

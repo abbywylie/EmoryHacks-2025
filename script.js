@@ -32,7 +32,22 @@ let currentUserId = null;
 let currentUserProgress = {};
 let currentSessionId = null;
 
-
+function loadJSON(path, success, error) {
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === XMLHttpRequest.DONE) {
+            if (xhr.status === 200) {
+                if (success)
+                    success(JSON.parse(xhr.responseText));
+            } else {
+                if (error)
+                    error(xhr);
+            }
+        }
+    };
+    xhr.open("GET", path, true);
+    xhr.send();
+}
 
 // Firebase Auth helper functions
 export async function signInWithGoogle(credential) {
@@ -42,11 +57,11 @@ export async function signInWithGoogle(credential) {
         const user = result.user;
 
         // Initialize user progress in Firestore if it doesn't exist
-        const userProgressRef = doc(db, 'users', user.uid, 'progress', 'data');
+        const userProgressRef = doc(db, 'Users', user.uid, 'progress', 'data');
         const userProgressSnap = await getDoc(userProgressRef);
 
         if (!userProgressSnap.exists()) {
-            await setDoc(userProgressRef, {
+            await addDoc(userProgressRef, {
                 wrongQuestions: [],
                 wrongQuestionsByCategory: {
                     // SAT Math categories
@@ -113,6 +128,15 @@ onAuthStateChanged(auth, async (user) => {
             }
 
             currentUserId = user.uid;
+
+            var userDoc = await getDoc(doc(db, 'Users', currentUserId));
+            if (!userDoc.exists()) {
+                loadJSON('./user.json', function (data) {
+                    setDoc(doc(db, 'Users', currentUserId), data);
+                    console.log("New info created")
+                });
+            }
+
             console.log("User is signed in:", user.uid);
 
             // 1. Hide Login Button, Show Profile Section (Fixes the visible button issue)
@@ -160,38 +184,12 @@ async function loadUserProgress() {
     if (!currentUserId) return;
 
     try {
-        // Load from user document (skillScores is a map field)
-        const userRef = doc(db, 'users', currentUserId);
-        const userSnap = await getDoc(userRef);
+        const userProgressRef = doc(db, 'Users', currentUserId, 'progress', 'data');
+        const userProgressSnap = await getDoc(userProgressRef);
 
-        if (!userSnap.exists()) {
-            console.warn('⚠️ User document does not exist');
-            return;
+        if (userProgressSnap.exists()) {
+            currentUserProgress = userProgressSnap.data();
         }
-
-        const userData = userSnap.data();
-        const skillScores = userData.skillScores || {};
-        const attemptedQuestions = userData.attemptedQuestions || [];
-        const wrongQuestions = [];
-        const wrongQuestionsByCategory = {};
-
-        // Extract wrong questions from each skill category
-        for (const [topicName, topicData] of Object.entries(skillScores)) {
-            if (topicData.incorrectQID && topicData.incorrectQID.length > 0) {
-                wrongQuestions.push(...topicData.incorrectQID);
-                wrongQuestionsByCategory[topicName] = topicData.incorrectQID;
-            }
-        }
-
-        // Update currentUserProgress with the loaded data
-        currentUserProgress = {
-            skillScores: skillScores,
-            wrongQuestions: wrongQuestions,
-            wrongQuestionsByCategory: wrongQuestionsByCategory,
-            attemptedQuestions: attemptedQuestions
-        };
-
-        console.log('✅ Loaded user progress:', currentUserProgress);
 
         const accuracy = calculateSkillAccuracy(skillScores);
         renderPerformanceChart(accuracy);
@@ -385,7 +383,7 @@ export async function createSession() {
     if (!currentUserId) return null;
 
     try {
-        const sessionRef = await addDoc(collection(db, 'users', currentUserId, 'sessions'), {
+        const sessionRef = await addDoc(collection(db, 'Users', currentUserId, 'sessions'), {
             questions: [],
             answers: [],
             timestamp: new Date(),
@@ -403,7 +401,7 @@ export async function saveAnswerToSession(questionId, userAnswer, isCorrect, rat
     if (!currentUserId || !currentSessionId) return;
 
     try {
-        const sessionRef = doc(db, 'users', currentUserId, 'sessions', currentSessionId);
+        const sessionRef = doc(db, 'Users', currentUserId, 'sessions', currentSessionId);
         await updateDoc(sessionRef, {
             questions: arrayUnion(questionId),
             answers: arrayUnion({
@@ -506,69 +504,56 @@ export async function updateUserProgress(questionId, isCorrect, skillCategory, t
             }
         }
 
-        // Access the user document where skillScores is a map field
+        // Get reference to user document
         const userRef = doc(db, 'users', currentUserId);
+
+        // Update skill scores in the user document
         const userSnap = await getDoc(userRef);
+        const currentProgress = userSnap.exists() ? userSnap.data() : {};
+        const skillScores = currentProgress.skillScores || {};
 
-        let userData = {};
-        if (!userSnap.exists()) {
-            console.warn('⚠️ User document does not exist, creating it...');
-            // Create the user document with initial structure
-            userData = {
-                attemptedQuestions: [],
-                skillScores: {},
-                createdAt: new Date()
-            };
-            await setDoc(userRef, userData);
+        // Update the specific skill category
+        if (!skillScores[categoryKey]) {
+            skillScores[categoryKey] = { correct: 0, total: 0, incorrectQID: [] };
+        }
+
+        skillScores[categoryKey].total += 1;
+        if (isCorrect) {
+            skillScores[categoryKey].correct += 1;
         } else {
-            userData = userSnap.data();
+            // Add to incorrect questions array if not already present
+            if (!skillScores[categoryKey].incorrectQID) {
+                skillScores[categoryKey].incorrectQID = [];
+            }
+            if (!skillScores[categoryKey].incorrectQID.includes(questionId)) {
+                skillScores[categoryKey].incorrectQID.push(questionId);
+            }
         }
 
-        const skillScores = userData.skillScores || {};
-        const currentTopic = skillScores[categoryKey] || { correct: 0, total: 0, incorrectQID: [] };
-
-        // Update the topic stats
-        const updatedTopic = {
-            correct: currentTopic.correct + (isCorrect ? 1 : 0),
-            total: currentTopic.total + 1,
-            incorrectQID: currentTopic.incorrectQID || []
-        };
-
-        // Add to incorrectQID if wrong and not already there
-        if (!isCorrect && !updatedTopic.incorrectQID.includes(questionId)) {
-            updatedTopic.incorrectQID.push(questionId);
-        }
-
-        // Track attempted questions
-        const attemptedQuestions = userData.attemptedQuestions || [];
+        // Update attemptedQuestions array
+        const attemptedQuestions = currentProgress.attemptedQuestions || [];
         if (!attemptedQuestions.includes(questionId)) {
             attemptedQuestions.push(questionId);
         }
 
-        // Store answer details if wrong (for review later)
-        const updateData = {
-            [`skillScores.${categoryKey}`]: updatedTopic,
-            attemptedQuestions: attemptedQuestions
+        // Store the answer details in answers array
+        const answerData = {
+            questionID: questionId,
+            userAnswer: userAnswer,
+            isCorrect: isCorrect,
+            rationale: rationale,
+            timestamp: new Date(),
+            category: categoryKey
         };
 
-        if (!isCorrect && userAnswer) {
-            // Add to answers array with full details
-            const answerRecord = {
-                questionID: questionId,
-                userAnswer: userAnswer,
-                isCorrect: isCorrect,
-                rationale: rationale || '',
-                timestamp: new Date(),
-                category: categoryKey
-            };
-            
-            updateData['answers'] = arrayUnion(answerRecord);
-        }
-
         // Update the user document
-        await updateDoc(userRef, updateData);
+        await setDoc(userRef, {
+            skillScores: skillScores,
+            attemptedQuestions: attemptedQuestions,
+            answers: arrayUnion(answerData)
+        }, { merge: true });
 
-        console.log(`✅ Updated ${categoryKey}: correct=${isCorrect}, questionId=${questionId}`);
+        console.log(`Updated progress for ${categoryKey}: ${isCorrect ? 'correct' : 'incorrect'}`);
 
         // Reload progress
         await loadUserProgress();
@@ -632,7 +617,7 @@ export async function loadWrongQuestionsForCategory(categoryName) {
         const userRef = doc(db, 'users', currentUserId);
         const userSnap = await getDoc(userRef);
         const answers = userSnap.exists() ? userSnap.data().answers || [] : [];
-        
+
         // Create a map of questionID -> answer details for quick lookup
         const answerMap = {};
         answers.forEach(answer => {
@@ -640,23 +625,23 @@ export async function loadWrongQuestionsForCategory(categoryName) {
                 answerMap[answer.questionID] = answer;
             }
         });
-        
+
         // Fetch questions by document ID (not by a field called 'id')
         const questions = [];
-        
+
         // Fetch each question individually (Firestore document IDs)
         for (const questionId of questionIds.slice(0, 10)) {
             try {
                 const questionRef = doc(db, 'questions', questionId);
                 const questionSnap = await getDoc(questionRef);
-                
+
                 if (questionSnap.exists()) {
                     const questionData = questionSnap.data();
                     console.log('📄 Found question:', questionId, questionData);
-                    
+
                     // Add the document ID and user's answer to the data
-                    const questionWithAnswer = { 
-                        id: questionId, 
+                    const questionWithAnswer = {
+                        id: questionId,
                         ...questionData,
                         userAnswer: answerMap[questionId]?.userAnswer || null,
                         rationale: answerMap[questionId]?.rationale || '',
@@ -683,14 +668,14 @@ export async function completeSession() {
     if (!currentUserId || !currentSessionId) return;
 
     try {
-        const sessionRef = doc(db, 'users', currentUserId, 'sessions', currentSessionId);
+        const sessionRef = doc(db, 'Users', currentUserId, 'sessions', currentSessionId);
         await updateDoc(sessionRef, {
             completed: true,
             completedAt: new Date()
         });
 
         // Update progress sessions list
-        const progressRef = doc(db, 'users', currentUserId, 'progress', 'data');
+        const progressRef = doc(db, 'Users', currentUserId, 'progress', 'data');
         await updateDoc(progressRef, {
             sessions: arrayUnion(currentSessionId)
         });
@@ -739,7 +724,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 .then((result) => {
                     const user = result.user;
                     console.log("User signed in:", user.displayName, user.email);
-
+                    //save to firestore
+                    const db = getFirestore();
+                    setDoc(doc(db, 'Users', user.uid), {
+                        name: user.displayName,
+                        email: user.email
+                    });
+                    console.log("User document created/updated in Firestore");
                     loadIndexPage();
                 })
                 .catch((error) => {
@@ -807,7 +798,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         const q = questions[currentIndex];
-        questionText.textContent = q.questionText;
+        questionText.textContent = q.passage + "\n" + q.questionText;
         topicChip.textContent = q.type || q.topic || "Question";
         questionCounter.textContent = `Question ${currentIndex + 1} / ${questions.length}`;
 

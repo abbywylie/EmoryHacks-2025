@@ -8,7 +8,7 @@
 // IMPORTANT: Use an OpenRouter API key (sk-or-...)
 // DO NOT use a Google gemini key here.
 const OPENROUTER_API_KEY = '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';
-
+// const OPENROUTER_API_KEY = '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';
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 
 /**
@@ -31,6 +31,7 @@ export async function getAIExplanation(question, userAnswer, rationale) {
             body: JSON.stringify({
                 // model: "google/gemini-2.5-pro", <-- slower
                 model: "google/gemini-2.5-flash",
+                // model: "google/gemini-2.0-flash-exp:free",
                 messages: [
                     {
                         role: "user",
