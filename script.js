@@ -31,6 +31,8 @@ let currentUserId = null;
 let currentUserProgress = {};
 let currentSessionId = null;
 
+
+
 // Firebase Auth helper functions
 export async function signInWithGoogle(credential) {
     try {
@@ -73,28 +75,66 @@ export async function signOutUser() {
     }
 }
 
-async function handleRedirectSignIn(params) {
-    try{
+async function handleRedirectSignIn() {
+    try {
         const result = await getRedirectResult(auth);
         if (result) {
-            console.log("Redirect sign-in successful:", result.user.uid);
+            console.log("Redirect sign-in:", result.user.uid);
         }
-    } catch (error) {
-        console.error("Error handling redirect sign-in:", error);
+    } catch (err) {
+        console.error("Errorr retrieving redirect result:", err);
     }
 }
-handleRedirectSignIn();
-
-// Monitor auth state
+// Global Scope (Only one instance of this listener)
 onAuthStateChanged(auth, (user) => {
-    if (user) {
-        currentUserId = user.uid;
-        loadUserProgress();
-    } else {
-        currentUserId = null;
-        currentUserProgress = {};
+    // Get element references here, OR make sure they are globally accessible
+    const userInfoEl = document.getElementById("userInfo"); 
+    const signInEl = document.getElementById("signIn");
+    
+    // Check if the page is currently loaded in the browser
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+
+        if (user) {
+            // --- USER IS SIGNED IN ---
+            currentUserId = user.uid;
+            console.log("User is signed in:", user.uid);
+
+            // 1. Hide Login Button, Show Profile Section (Fixes the visible button issue)
+            if (signInEl) signInEl.style.display = 'none';
+            if (userInfoEl) {
+                userInfoEl.style.display = 'block'; 
+                // You need logic here to populate userInfoEl with the user's name/photo
+            }
+
+            // 2. Redirect to profile page if on landing page
+            const currentPath = window.location.pathname;
+            if (currentPath === "/indext.html" || currentPath === "/" || currentPath.endsWith("index.html")) {
+                 window.location.replace("profile.html");
+            }
+            // If you are on the profile page, call loadUserProgress() 
+            if (currentPath.includes("profile.html")) {
+                loadUserProgress();
+            }
+
+        } else {
+            // --- USER IS SIGNED OUT ---
+            currentUserId = null;
+            console.log("No user logged in.");
+
+            // Show Login Button, Hide Profile Section
+            if (signInEl) signInEl.style.display = 'block';
+            if (userInfoEl) userInfoEl.style.display = 'none';
+        }
     }
 });
+
+// Run this right after defining the listener
+handleRedirectSignIn();
+
+
+
+
+
 
 async function loadUserProgress() {
     if (!currentUserId) return;
@@ -378,14 +418,15 @@ document.addEventListener("DOMContentLoaded", () => {
     let selectedAnswer = null;
     let isUnsure = false;
 
-    // Google Sign-In button handler
-    if (googleSignInBtn) {
-        googleSignInBtn.addEventListener("click", async () => {
+    // Google Login Button
+    const loginBtn = document.getElementById("google-sign-in-button");
+
+    if (loginBtn) {
+        loginBtn.addEventListener("click", async() => {
             try {
-                const result = await signInWithRedirect(auth, googleProvider);
-                
+                await signInWithRedirect(auth, googleProvider);
             } catch (error) {
-                console.error("Error signing in with Google:", error, error.message);
+                console.error("Sign-in redirect initiation error:", error);
             }
         });
     }
@@ -607,59 +648,6 @@ document.addEventListener("DOMContentLoaded", () => {
         nextBtn.textContent = "Done";
     }
     
-    // --- CHART.JS IMPLEMENTATION ---
-
-// // 1. Get the placeholder element by its ID
-// const chartElement = document.getElementById('snapshotChart');
-
-// // 2. Define the data for the chart (change these numbers for the hackathon!)
-// const chartData = {
-//     labels: ['Reading', 'Writing', 'Math'],
-//     datasets: [{
-//         label: 'Accuracy %', 
-//         data: [75, 80, 65],  // Example Accuracy Data
-//         backgroundColor: [
-//             'rgba(255, 99, 132, 0.7)', // Red
-//             'rgba(54, 162, 235, 0.7)', // Blue
-//             'rgba(255, 206, 86, 0.7)'  // Yellow
-//         ],
-//         borderWidth: 1
-//     }]
-// };
-
-// // 3. Create the new chart
-// new Chart(chartElement, {
-//     type: 'bar', // We are creating a Bar Chart
-//     data: chartData,
-//     options: {
-//         scales: {
-//             y: {
-//                 beginAtZero: true,
-//                 max: 100, // Max scale for percentages
-//                 ticks: {
-//                     color: '#9ca3af' // Style the text to match your site's dark theme
-//                 }
-//             },
-//             x: {
-//                 ticks: {
-//                     color: '#9ca3af'
-//                 }
-//             }
-//         },
-//         responsive: true,
-//         plugins: {
-//             legend: {
-//                 display: false 
-//             }
-//         }
-//     }
-
-
-//     // SAT Breakdown navigation
-
-
-// });
-
 
     // -- WORK IN PROGRESS - DANIEL ---
 

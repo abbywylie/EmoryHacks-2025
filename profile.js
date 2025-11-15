@@ -2,6 +2,16 @@
 import { signInWithGoogle, auth, signOutUser } from "./script.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
 
+const firebaseConfig = {
+    apiKey: "AIzaSyAkZiKfWJjMv-rcl-QIZb14m8BJhCbiB18",
+    authDomain: "hackathon2025-8af8d.firebaseapp.com",
+    projectId: "hackathon2025-8af8d",
+    storageBucket: "hackathon2025-8af8d.firebasestorage.app",
+    messagingSenderId: "1046790183508",
+    appId: "1:1046790183508:web:e45a9c8c6352c2a70a6bc1",
+    measurementId: "G-Y5HPZKDKQD"
+};
+
 async function handleCredentialResponse(response) {
     // Google sends back a JWT token
     const jwt = response.credential;
