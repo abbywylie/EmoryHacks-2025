@@ -388,7 +388,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         const q = questions[currentIndex];
-        questionText.textContent = q.text;
+        questionText.textContent = q.questionText;
         topicChip.textContent = q.type || q.topic || "Question";
         questionCounter.textContent = `Question ${currentIndex + 1} / ${questions.length}`;
         

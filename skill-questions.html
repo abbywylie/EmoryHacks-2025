@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Review Questions — StudyDeck</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <div class="app">
+    <!-- Navigation -->
+    <header class="top-nav">
+      <a href="breakdown.html" class="logo" style="cursor: pointer; text-decoration: none; color: inherit;">
+        StudyDeck<span>.</span>
+      </a>
+      <div class="nav-tagline">Smarter practice. Less time.</div>
+    </header>
+
+    <main>
+      <section class="skill-review-page">
+        <!-- Skill Header -->
+        <div class="skill-review-header">
+          <h1 id="skill-title">Algebra</h1>
+          <div class="skill-score-info">
+            <span class="score-label">Your Score:</span>
+            <span class="score-value" id="skill-score">610-670</span>
+          </div>
+          
+          <!-- Progress Bar -->
+          <div class="progress-bar-container">
+            <div class="progress-bar" id="skill-progress-bar" style="width: 62.5%"></div>
+            <div class="progress-labels">
+              <span>200</span>
+              <span>800</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Questions Review Section -->
+        <div class="questions-review-section">
+          <h2>Questions You Got Wrong</h2>
+          <div id="questions-container" class="questions-review-container">
+            <!-- Questions will be dynamically inserted -->
+          </div>
+        </div>
+
+        <!-- Action Button -->
+        <div class="review-actions">
+          <button class="primary-btn" onclick="window.location.href='indext.html'">
+            Keep Practicing More
+          </button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="skill-questions.js"></script>
+</body>
+
+</html>

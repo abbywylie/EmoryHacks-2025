@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>StudyDeck – Rewards Gacha</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="rewards.css" />
+</head>
+
+<body>
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar-nav">
+        <div class="sidebar-logo">StudyDeck<span>.</span></div>
+        <div class="sidebar-nav-links">
+            <a href="../indext.html" class="sidebar-nav-link">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                </svg>
+                <span>Home</span>
+            </a>
+            <a href="../breakdown.html" class="sidebar-nav-link">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="20" x2="12" y2="10"></line>
+                    <line x1="18" y1="20" x2="18" y2="4"></line>
+                    <line x1="6" y1="20" x2="6" y2="16"></line>
+                </svg>
+                <span>Progress</span>
+            </a>
+            <a href="rewards.html" class="sidebar-nav-link active">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                </svg>
+                <span>Rewards</span>
+            </a>
+            <a href="../profile.html" class="sidebar-nav-link">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <span>Profile</span>
+            </a>
+        </div>
+    </nav>
+
+    <div class="rewards-app">
+        <!-- Navigation -->
+        <header class="top-nav">
+            <div class="logo" id="home-link">StudyDeck<span>.</span></div>
+            <div class="nav-tagline">Smarter practice. Less time.</div>
+        </header>
+
+        <main class="rewards-main">
+            <div class="rewards-header">
+                <h1>Rewards Gacha</h1>
+                <p>Spend your study tickets to unlock avatars, themes, and more.</p>
+            </div>
+            <!-- Centered machine -->
+            <section class="machine-section">
+                <div class="ticket-bar">
+                    Tickets: <span id="ticket-count">3</span>
+                </div>
+
+                <div class="machine" id="machine">
+                    <div class="machine-top">
+                        <div class="machine-glass">
+                            <img src="gumball.png" alt="" class="gumball-pile-img">
+                        </div>
+                    </div>
+                    <div class="machine-bottom">
+                        <div class="machine-slot"></div>
+                        <div class="machine-handle"></div>
+                    </div>
+                </div>
+
+                <button id="roll-btn" class="roll-btn">ROLL GACHA</button>
+                <p class="hint-text">
+                    You’ll earn more tickets by completing study sessions.
+                </p>
+            </section>
+
+            <!-- Collection below -->
+            <section class="reward-section">
+                <h2>Your collection</h2>
+                <div class="inventory-grid" id="inventory-grid">
+                    <!-- filled by JS -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Reward popup modal -->
+    <div id="reward-modal" class="reward-modal hidden">
+        <div id="reward-backdrop" class="reward-backdrop"></div>
+        <div class="reward-modal-content">
+            <button id="modal-close" class="modal-close">&times;</button>
+            <h2 class="modal-title">You got a reward!</h2>
+            <div id="modal-reward-body" class="modal-reward-body">
+                <!-- pill inserted by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Your Firebase init/login script can also be included here -->
+    <!-- <script src="../firebase-init.js"></script> -->
+
+    <script type="module">
+        import '../theme-loader.js';
+        import './gatcha.js';
+    </script>
+</body>
+
+</html>
