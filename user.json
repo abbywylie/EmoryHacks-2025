@@ -3,7 +3,7 @@
     "password": "password123",
     "name": "Student Alpha",
     "currentScore": 0,
-    "points": 0,
+    "points": 3,
     "rewards": {
         "equippedIcon": "https://example.com/icons/default.png",
         "equippedTheme": "default",
