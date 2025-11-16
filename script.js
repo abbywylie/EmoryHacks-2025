@@ -1290,7 +1290,5 @@ rationaleInput.addEventListener("keydown", async (e) => {
             landingSection.classList.remove("hidden");
         });
     }
-    // --- END CHART.JS IMPLEMENTATFION ---
-
-    applyTheme();
+    // --- END CHART.JS IMPLEMENTATION ---
 });
