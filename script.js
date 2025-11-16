@@ -509,7 +509,7 @@ export async function updateUserProgress(questionId, isCorrect, skillCategory, t
         }
 
         // Get reference to user document
-        const userRef = doc(db, 'users', currentUserId);
+        const userRef = doc(db, 'Users', currentUserId);
 
         // Update skill scores in the user document
         const userSnap = await getDoc(userRef);
@@ -517,6 +517,7 @@ export async function updateUserProgress(questionId, isCorrect, skillCategory, t
         const skillScores = currentProgress.skillScores || {};
 
         // Update the specific skill category
+        categoryKey = skillCategory || (tags?.[0] || 'Other');
         if (!skillScores[categoryKey]) {
             skillScores[categoryKey] = { correct: 0, total: 0, incorrectQID: [] };
         }
@@ -526,9 +527,6 @@ export async function updateUserProgress(questionId, isCorrect, skillCategory, t
             skillScores[categoryKey].correct += 1;
         } else {
             // Add to incorrect questions array if not already present
-            if (!skillScores[categoryKey].incorrectQID) {
-                skillScores[categoryKey].incorrectQID = [];
-            }
             if (!skillScores[categoryKey].incorrectQID.includes(questionId)) {
                 skillScores[categoryKey].incorrectQID.push(questionId);
             }
@@ -745,30 +743,35 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (loginBtn) {
         loginBtn.addEventListener("click", async () => {
-            signInWithPopup(auth, googleProvider)
-                .then(async (result) => {
-                    const user = result.user;
-                    console.log("User signed in:", user.displayName, user.email);
-                    var userDoc = await getDoc(doc(db,'Users',currentUserId));
-                    if (!userDoc.exists()){
-                        loadJSON('./user.json',function(data){
-                        setDoc(doc(db,'Users',currentUserId),data);
-                        console.log("New info created")
+            try {
+                const result = await signInWithPopup(auth, googleProvider);
+                const user = result.user;
+
+                // ✅ Set currentUserId immediately
+                currentUserId = user.uid;
+
+                console.log("User signed in:", user.displayName, user.email);
+                console.log("Firebase UID:", currentUserId);
+
+                // Check if user document exists
+                const userDocRef = doc(db, 'users', currentUserId);
+                const userDocSnap = await getDoc(userDocRef);
+
+                if (!userDocSnap.exists()) {
+                    loadJSON('./user.json', async function(data){
+                        await setDoc(userDocRef, data);
+                        console.log("New user document created in Firestore");
                     });
                 }
-                    console.log("User document created/updated in Firestore");
-                    loadIndexPage();
-                })
-                .catch((error) => {
-                    console.error("Error signing in:", error.message);
-                });
-            // try {
-            //     await signInWithRedirect(auth, googleProvider);
-            // } catch (error) {
-            //     console.error("Sign-in redirect initiation error:", error);
-            // }
+
+                loadIndexPage(); // Now safe to proceed
+
+            } catch (error) {
+                console.error("Error signing in:", error.message);
+            }
         });
     }
+
 
     // Switch from landing → trainer
     if (startBtn) {
