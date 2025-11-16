@@ -108,39 +108,59 @@ export function loadProfilePage() {
             }
 
             const pictureSelection = document.getElementById("profile-picture-selection")
-            const editBtn = document.getElementById("edit-profile");
+            const selectionContainer = pictureSelection.querySelector("div");
 
             const items = rewards.items;
             const icons = [];
 
+            // Filter obtained avatars from inventory
             for (var i of items) {
                 if (i.includes("icon-")) {
                     icons.push(i);
                 }
             }
 
+            console.log("Available icons:", icons);
+            console.log("Picture selection element:", pictureSelection);
+
+            // Clear previous options and add current ones
+            selectionContainer.innerHTML = "";
+            
             for (var i of icons) {
                 const reformattedIconName = i.replace("icon-", "").replace(" ", "%20");
-                pictureSelection.insertAdjacentHTML("beforeend", `<img src="./rewards/icons/${reformattedIconName}.png" class="profile-option" id=${reformattedIconName} style="width:60px; height:60px; border-radius:50%; cursor:pointer"></img>`);
+                const isEquipped = equippedIcon === i ? "equipped" : "";
+                selectionContainer.insertAdjacentHTML("beforeend", `<img src="./rewards/icons/${reformattedIconName}.png" class="profile-option ${isEquipped}" data-icon-id="${i}" style="width:80px; height:80px; border-radius:50%; cursor:pointer; border: ${equippedIcon === i ? '3px solid #3b82f6' : '3px solid transparent'}; transition: all 0.2s ease;"></img>`);
             }
 
-            editBtn.addEventListener("click", async () => {
-                if (pictureSelection.style.display === "none") {
-                    pictureSelection.style.display = "block";
-                } else {
-                    pictureSelection.style.display = "none";
-                }
-            });
+            // Make the profile picture clickable to toggle selection panel
+            if (profilePictureEl) {
+                profilePictureEl.style.cursor = "pointer";
+                
+                // Remove any existing listeners by cloning the element
+                const newProfilePictureEl = profilePictureEl.cloneNode(true);
+                profilePictureEl.parentNode.replaceChild(newProfilePictureEl, profilePictureEl);
+                
+                newProfilePictureEl.addEventListener("click", function(e) {
+                    console.log("Profile picture clicked!");
+                    if (pictureSelection.style.display === "none" || pictureSelection.style.display === "") {
+                        pictureSelection.style.display = "block";
+                        console.log("Showing avatar selection");
+                    } else {
+                        pictureSelection.style.display = "none";
+                        console.log("Hiding avatar selection");
+                    }
+                });
+            }
 
             document.querySelectorAll(".profile-option").forEach(img => {
-                img.addEventListener("click", () => {
-                    const iconId = img.id;
+                img.addEventListener("click", function(e) {
+                    e.stopPropagation();
+                    const iconId = this.getAttribute("data-icon-id");
+                    console.log("Selected avatar:", iconId);
                     userInfo.rewards.equippedIcon = iconId;
                     setDoc(doc(db, "Users", user.uid), userInfo).then(function () {
                         window.location.replace("./profile.html");
                     });
-
-                    console.log(iconId);
                 });
             });
         } catch (error) {
@@ -187,3 +207,4 @@ document.addEventListener("DOMContentLoaded", () => {
 
     applyTheme();
 })
+

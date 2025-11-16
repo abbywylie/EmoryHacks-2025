@@ -65,65 +65,67 @@
       <!-- PROFILE PAGE -->
       <!-- ================================ -->
 
-      <section id="profile" class="profile" style="max-width: 700px; margin: auto;">
+      
 
-        <!-- User Header -->
-        <div class="profile-header" style="text-align: center; margin-top: 40px;">
-          <div id="profile-picture"
-            style="width: 120px; height: 120px; border-radius: 50%; background-color: rgba(15,23,42,0.9); margin: 0 auto 20px">
-          </div>
+      <!-- Replace the existing profile section with this -->
+<section id="profile" class="profile" style="max-width: 1000px; margin: auto;">
 
-          <h1 id="profile-name">Your Name</h1>
-          <p id="profile-email" style="color: #666;">email@example.com</p>
+  <!-- User Header -->
+  <div class="profile-header">
+    <div id="profile-picture"
+      style="width: 140px; height: 140px; border-radius: 50%; background-color: rgba(15,23,42,0.9); margin: 0 auto 1.5rem">
+    </div>
+
+    <h1 id="profile-name">Your Name</h1>
+  </div>
+
+  <!-- Email and Stats Side by Side -->
+  <div class="profile-info-grid">
+    <!-- Email Section (Left) -->
+    <div class="profile-email-section">
+      <h2>📧 Contact</h2>
+      <p id="profile-email" style="color: #9ca3af;">email@example.com</p>
+    </div>
+
+    <!-- Stats Section (Right) -->
+    <div class="profile-stats">
+      <h2>📊 Your Stats</h2>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value" id="sessions-completed">0</div>
+          <div class="stat-label">Sessions</div>
         </div>
 
-        <!-- Stats Section -->
-        <div class="profile-stats" style="margin-top: 40px;">
-          <h2>Stats</h2>
-
-          <div class="stats-grid" style="
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            margin-top: 20px;
-          ">
-            <div class="stat-card"
-              style="padding: 20px; border: 1px solid #ddd; border-radius: 10px; text-align:center;">
-              <div class="stat-value" id="sessions-completed" style="font-size: 2rem;">0</div>
-              <div class="stat-label">Sessions</div>
-            </div>
-
-            <div class="stat-card"
-              style="padding: 20px; border: 1px solid #ddd; border-radius: 10px; text-align:center;">
-              <div class="stat-value" id="questions-answered" style="font-size: 2rem;">0</div>
-              <div class="stat-label">Questions</div>
-            </div>
-
-            <div class="stat-card"
-              style="padding: 20px; border: 1px solid #ddd; border-radius: 10px; text-align:center;">
-              <div class="stat-value" id="accuracy" style="font-size: 2rem;">0%</div>
-              <div class="stat-label">Accuracy</div>
-            </div>
-          </div>
+        <div class="stat-card">
+          <div class="stat-value" id="questions-answered">0</div>
+          <div class="stat-label">Questions</div>
         </div>
 
-        <!-- Buttons -->
-        <div style="text-align: center; margin-top: 40px;">
-          <button class="primary-btn" id="edit-profile">Edit Profile</button>
-          <button class="secondary-btn" id="logout-btn" style="margin-left: 10px;">Log out</button>
+        <div class="stat-card">
+          <div class="stat-value" id="accuracy">0</div>
+          <div class="stat-label">Accuracy</div>
         </div>
+      </div>
+    </div>
+  </div>
 
-        <div id="profile-picture-selection" style="display:none; text-align:center; margin-top:20px;">
-          <p>Select a new profile picture:</p>
-          <div style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap;">
-            <!-- <img src="images/avatar1.png" class="profile-option" alt="Avatar 1" style="width:60px; height:60px; border-radius:50%; cursor:pointer;">
-            <img src="images/avatar2.png" class="profile-option" alt="Avatar 2" style="width:60px; height:60px; border-radius:50%; cursor:pointer;">
-            <img src="images/avatar3.png" class="profile-option" alt="Avatar 3" style="width:60px; height:60px; border-radius:50%; cursor:pointer;">
-            <img src="images/avatar4.png" class="profile-option" alt="Avatar 4" style="width:60px; height:60px; border-radius:50%; cursor:pointer;"> -->
-          </div>
-        </div>
+  <!-- Profile Picture Selection -->
+  <div id="profile-picture-selection" style="display:none;">
+    <p>✨ Choose Your Avatar</p>
+    <div style="display:flex; justify-content:center; gap:15px; flex-wrap:wrap;">
+      <!-- Icons will be inserted here by JavaScript -->
+    </div>
+  </div>
 
-      </section>
+  <!-- Action Buttons -->
+  <div class="profile-actions">
+        <button class="primary-btn" id="edit-profile">✏️ Edit Profile</button>
+
+    <button class="secondary-btn" id="logout-btn">🚪 Log Out</button>
+  </div>
+
+</section>
 
     </main>
   </div>
