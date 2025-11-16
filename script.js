@@ -583,13 +583,15 @@ export async function updateUserProgress(questionId, isCorrect, skillCategory, t
         console.log(`📝 Question ${questionId}: topic="${questionTopic}", tags=[${tags?.join(', ')}], final category="${categoryKey}"`);
 
         // Get reference to user document
+        console.log(`💾 Saving to Firebase for user: ${currentUserId}`);
         const userRef = doc(db, 'Users', currentUserId);
 
         // Update skill scores in the user document
         const userSnap = await getDoc(userRef);
-        const userData = userSnap.data();
+        console.log(`📄 User document exists: ${userSnap.exists()}`);
         const currentProgress = userSnap.exists() ? userSnap.data() : {};
         const skillScores = currentProgress.skillScores || {};
+        console.log(`📊 Current skillScores:`, skillScores);
 
         // Update the specific skill category (categoryKey already calculated above)
         if (!skillScores[categoryKey]) {
@@ -633,15 +635,20 @@ export async function updateUserProgress(questionId, isCorrect, skillCategory, t
         const newPoints = currentPoints + pointsToAward;
 
         // Update the user document
+        console.log(`💾 Saving data to Firebase Users/${currentUserId}:`, {
+            skillScores,
+            attemptedQuestions,
+            points: newPoints
+        });
+        
+        await setDoc(userRef, {
+            skillScores: skillScores,
+            attemptedQuestions: attemptedQuestions,
+            answers: arrayUnion(answerData),
+            points: newPoints
+        }, { merge: true });
 
-        userData.skillScores = skillScores;
-        userData.attemptedQuestions = attemptedQuestions;
-        userData.answers = arrayUnion(answerData);
-        userData.points = newPoints;
-
-        await setDoc(userRef, userData);
-
-        console.log(`Updated progress for ${categoryKey}: ${isCorrect ? 'correct' : 'incorrect'}`);
+        console.log(`✅ Updated progress for ${categoryKey}: ${isCorrect ? 'correct' : 'incorrect'}`);
         if (pointsToAward > 0) {
             console.log(`🎟️ Awarded ${pointsToAward} ticket(s)! Total: ${newPoints}`);
         }
