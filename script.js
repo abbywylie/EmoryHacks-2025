@@ -185,7 +185,7 @@ async function loadUserProgress() {
     if (!currentUserId) return;
 
     try {
-        const userRef = doc(db, 'Users', currentUserId,);
+        const userRef = doc(db, 'Users', currentUserId);
         const userSnap = await getDoc(userRef);
 
         if (!userSnap.exists()) {
@@ -195,9 +195,33 @@ async function loadUserProgress() {
 
         const userData = userSnap.data();
         const skillScores = userData.skillScores || {};
+        const answers = userData.answers || []; 
+        
+        // **NEW: Fetch Sessions Array**
+        const sessions = userData.sessions || []; // Assuming this array holds IDs of completed sessions
 
-        const accuracy = calculateSkillAccuracy(skillScores);
-        renderPerformanceChart(accuracy);
+        // 1. Calculate Overall Stats
+        const totalAttempts = answers.length;
+        const totalCorrect = answers.filter(a => a.isCorrect).length;
+        const overallAccuracy = totalAttempts > 0 ? Math.round((totalCorrect / totalAttempts) * 100) : 0;
+        
+        // 2. Render Overall Stats
+        // Display Sessions
+        document.getElementById('total-sessions').textContent = sessions.length; // ✅ ADDED THIS LINE
+        
+        // Display Questions Attempted
+        document.getElementById('total-questions').textContent = totalAttempts;
+        
+        // Display Overall Accuracy
+        document.getElementById('overall-accuracy').textContent = `${overallAccuracy}%`;
+
+        // 3. Render Skill Scores (List View)
+        const accuracyData = calculateSkillAccuracy(skillScores);
+        renderSkillList(accuracyData);
+
+        // 4. Render Chart (Existing Logic)
+        renderPerformanceChart(accuracyData);
+
     } catch (error) {
         console.error("Error loading user progress:", error);
     }
