@@ -2,6 +2,7 @@
 import { signInWithGoogle, auth, db } from "./script.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
 import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+import { applyTheme } from "./rewards/gatcha.js";
 
 
 const firebaseConfig = {
@@ -183,4 +184,6 @@ document.addEventListener("DOMContentLoaded", () => {
             window.location.replace("index.html")
         });
     }
+
+    applyTheme();
 })

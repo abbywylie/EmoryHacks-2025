@@ -2,6 +2,7 @@
 import { auth, db } from './script.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
 import { doc, getDoc, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+import { applyTheme } from "./rewards/gatcha.js";
 
 // This will hold the user's actual scores loaded from Firebase
 let userData = {
@@ -287,6 +288,8 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     });
+
+    applyTheme();
 });
 
 // Math Content Display Function

@@ -4,6 +4,7 @@
 // --- NEW ---
 // Import the API key from your config file
 import { OPENROUTER_API_KEY } from './config.js';
+import { applyTheme } from "./rewards/gatcha.js";
 
 const STORAGE_KEY = "studydeck_tests_v1";
 
@@ -768,3 +769,4 @@ if (refreshBtn) {
 loadTests();
 renderTestsList();
 renderChart();
+applyTheme();
