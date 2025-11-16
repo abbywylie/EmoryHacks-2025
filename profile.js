@@ -178,7 +178,67 @@ export function loadProfilePage() {
         if (profileEmailEl) {
             profileEmailEl.innerHTML = user.email || "email@example.com";
         }
+
+        await loadUserStats(user.uid);
     });
+}
+async function loadUserStats(userId) {
+    try {
+        const userRef = doc(db, 'Users', userId);
+        const userSnap = await getDoc(userRef);
+
+        if (!userSnap.exists()) {
+            console.log("No user data found for stats");
+            return;
+        }
+
+        const userData = userSnap.data();
+        const skillScores = userData.skillScores || {};
+        const attemptedQuestions = userData.attemptedQuestions || [];
+
+        // Calculate total questions answered
+        const totalQuestions = attemptedQuestions.length;
+
+        // Calculate total correct and total attempts
+        let totalCorrect = 0;
+        let totalAttempts = 0;
+
+        for (const [skillName, skillData] of Object.entries(skillScores)) {
+            if (skillData.total > 0) {
+                totalCorrect += skillData.correct || 0;
+                totalAttempts += skillData.total || 0;
+            }
+        }
+
+        // Calculate accuracy percentage
+        const accuracy = totalAttempts > 0 ? Math.round((totalCorrect / totalAttempts) * 100) : 0;
+
+        // Count sessions (assuming sessions are stored in a subcollection)
+        // For now, we'll estimate based on questions (every 5 questions = 1 session)
+        const sessionCount = Math.floor(totalQuestions / 5);
+
+        // Update the UI
+        const sessionsEl = document.getElementById("sessions-completed");
+        const questionsEl = document.getElementById("questions-answered");
+        const accuracyEl = document.getElementById("accuracy");
+
+        if (sessionsEl) {
+            sessionsEl.textContent = sessionCount;
+        }
+
+        if (questionsEl) {
+            questionsEl.textContent = totalQuestions;
+        }
+
+        if (accuracyEl) {
+            accuracyEl.textContent = accuracy + "%";
+        }
+
+        console.log(`📊 Stats loaded: ${sessionCount} sessions, ${totalQuestions} questions, ${accuracy}% accuracy`);
+
+    } catch (error) {
+        console.error("Error loading user stats:", error);
+    }
 }
 async function googleSignOut() {
     try {
