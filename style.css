@@ -1519,3 +1519,197 @@ main {
 .empty-progress-container .primary-btn {
   box-shadow: 0 10px 25px rgba(37, 99, 235, 0.4);
 }
+
+/* --- Adds styles for the new "View" panel --- */
+.score-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.score-summary-card {
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  text-align: center;
+}
+
+.score-summary-card .score-label {
+  font-size: 0.9rem;
+  color: #9ca3af;
+  margin-bottom: 0.5rem;
+}
+
+.score-summary-card .score-value {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #e5e7eb;
+}
+
+.score-summary-card.total .score-value {
+  color: var(--primary-color, #3b82f6);
+  font-size: 2.25rem;
+  font-weight: 700;
+}
+
+/* --- Adds styles for the new "View" breakdown --- */
+
+.details-header {
+  margin-top: 1.5rem;
+  border-top: 1px solid rgba(148, 163, 184, 0.22);
+  padding-top: 1.5rem;
+}
+
+.breakdown-card {
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.breakdown-title {
+  font-weight: 600;
+  color: #e5e7eb;
+  margin-bottom: 0.75rem;
+}
+
+.breakdown-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  font-size: 0.9rem;
+  color: #c3cad3;
+}
+
+.breakdown-stats .stat-label {
+  color: #818c9c;
+}
+
+
+/* --- Styles for the new "Tests Taken" cards --- */
+
+.test-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.25rem;
+  margin-top: 1.5rem;
+}
+
+.test-card-item {
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 1rem;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.2s ease-in-out;
+}
+
+.test-card-item:hover {
+  transform: translateY(-4px);
+  border-color: rgba(59, 130, 246, 0.4);
+}
+
+.test-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.22);
+  padding-bottom: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.test-card-date {
+  font-weight: 600;
+  color: #e5e7eb;
+}
+
+.test-card-type {
+  font-size: 0.8rem;
+  color: #9ca3af;
+  background: rgba(148, 163, 184, 0.1);
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+}
+
+.test-card-body {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex: 1;
+}
+
+.test-card-score-total {
+  flex: 1;
+  text-align: center;
+  border-right: 1px solid rgba(148, 163, 184, 0.22);
+  padding-right: 1.5rem;
+}
+
+.test-card-score-total .score-label {
+  font-size: 0.85rem;
+  color: #9ca3af;
+  margin-bottom: 0.25rem;
+  display: block;
+}
+
+.test-card-score-total .score-value {
+  font-size: 2.75rem;
+  font-weight: 700;
+  color: var(--primary-color, #3b82f6);
+  line-height: 1;
+}
+
+.test-card-score-sections {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.section-score {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.section-score .score-label {
+  font-size: 0.9rem;
+  color: #9ca3af;
+}
+
+.section-score .score-value-small {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #e5e7eb;
+}
+
+.test-card-actions {
+  margin-top: 1.25rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(148, 163, 184, 0.22);
+  display: flex;
+  gap: 0.5rem;
+}
+
+.test-card-actions .ghost-btn {
+  flex: 1;
+  text-align: center;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.85rem;
+}
+
+/* Style for the delete button */
+.ghost-btn.danger {
+  border-color: rgba(239, 68, 68, 0.4);
+  color: rgba(239, 68, 68, 0.8);
+}
+
+.ghost-btn.danger:hover {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.7);
+  color: #ef4444;
+}
