@@ -113,6 +113,16 @@
           <button class="secondary-btn" id="logout-btn" style="margin-left: 10px;">Log out</button>
         </div>
 
+        <div id="profile-picture-selection" style="display:none; text-align:center; margin-top:20px;">
+          <p>Select a new profile picture:</p>
+          <div style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap;">
+            <!-- <img src="images/avatar1.png" class="profile-option" alt="Avatar 1" style="width:60px; height:60px; border-radius:50%; cursor:pointer;">
+            <img src="images/avatar2.png" class="profile-option" alt="Avatar 2" style="width:60px; height:60px; border-radius:50%; cursor:pointer;">
+            <img src="images/avatar3.png" class="profile-option" alt="Avatar 3" style="width:60px; height:60px; border-radius:50%; cursor:pointer;">
+            <img src="images/avatar4.png" class="profile-option" alt="Avatar 4" style="width:60px; height:60px; border-radius:50%; cursor:pointer;"> -->
+          </div>
+        </div>
+
       </section>
 
     </main>
@@ -128,7 +138,6 @@
 
     document.addEventListener("DOMContentLoaded", () => {
       onAuthStateChanged(auth, (user) => {
-        loadProfilePage();
         if (!user) {
           window.location.replace("index.html");
         } else {

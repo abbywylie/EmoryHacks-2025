@@ -1,11 +1,19 @@
 // tests.js
 // Handles: loading/saving tests, CSV/PDF import, list rendering, chart, deletion
 
+// --- NEW ---
+// Import the API key from your config file
+import { OPENROUTER_API_KEY } from './config.js';
+
 const STORAGE_KEY = "studydeck_tests_v1";
 
 let tests = [];
 let selectedTestId = null;
 let scoreChart = null;
+
+// (Add these two new functions to tests.js)
+
+
 
 // ===== UTIL: storage =====
 function loadTests() {
@@ -74,166 +82,18 @@ function importCsvRows(rows) {
 
 // ===== PDF PARSING WITH GEMINI AI =====
 
-// Your Gemini API key - get one free at https://aistudio.google.com/apikey
-const GEMINI_API_KEY = "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";
+// --- DELETED ---
+// const GEMINI_API_KEY = "sk-or-v1-71...";
+// We now import this from config.js at the top of the file.
 
-// Extract and parse SAT scores using Gemini 2.0 Flash vision
-async function extractPdfWithGemini(file) {
-    console.log("🤖 Starting Gemini AI PDF extraction...");
+// Extract and parse SAT scores using Gemini AI
+// ===== PDF PARSING WITH GEMINI AI =====
 
-    if (!GEMINI_API_KEY) {
-        throw new Error("Please add your Gemini API key to tests.js");
-    }
+// (This function is in tests.js)
+// ... (import OPENROUTER_API_KEY) ...
 
-    // Check if PDF.js is loaded
-    if (typeof window.pdfjsLib === 'undefined') {
-        throw new Error("PDF.js library not loaded");
-    }
 
-    const arrayBuffer = await file.arrayBuffer();
-    const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
 
-    console.log(`📄 PDF loaded: ${pdf.numPages} pages`);
-
-    // Render first page to image (scores are typically on page 1)
-    const page = await pdf.getPage(1);
-    const scale = 2.0;
-    const viewport = page.getViewport({ scale });
-
-    const canvas = document.createElement('canvas');
-    const context = canvas.getContext('2d');
-    canvas.height = viewport.height;
-    canvas.width = viewport.width;
-
-    await page.render({
-        canvasContext: context,
-        viewport: viewport
-    }).promise;
-
-    console.log(`🖼️ Page rendered (${canvas.width}x${canvas.height})`);
-
-    // Convert to base64 image
-    const base64Image = canvas.toDataURL('image/png').split(',')[1];
-
-    console.log(`🤖 Sending to Gemini AI via OpenRouter...`);
-    console.log(`📊 Image size: ${base64Image.length} characters`);
-
-    const requestBody = {
-        model: "google/gemini-2.0-flash-exp:free",
-        messages: [
-            {
-                role: "user",
-                content: [
-                    {
-                        type: "text",
-                        text: `You are reading an SAT or PSAT score report PDF. Extract ALL visible scores.
-
-CRITICAL: Look very carefully for the TOTAL SCORE - it's usually the biggest number on the page, often 4 digits (e.g., 1200, 1450). It might be labeled as:
-- "Total Score"
-- "Composite Score" 
-- Just a large number near the top
-- The sum of Reading/Writing + Math sections
-
-Also extract these if visible:
-- Test date (any date on the report)
-- Reading and Writing section score (200-800)
-- Math section score (200-800)
-- Subscores (if shown): reading, writing, command of evidence, words in context, expression of ideas, algebra, advanced math, problem solving
-
-Return ONLY this JSON (use null if not found):
-{
-  "testDate": "YYYY-MM-DD",
-  "totalScore": 1234,
-  "readingWriting": 567,
-  "math": 567,
-  "reading": 34,
-  "writing": 34,
-  "command": 12,
-  "words": 12,
-  "expression": 12,
-  "algebra": 12,
-  "advancedMath": 12,
-  "problemSolving": 12
-}
-
-DO NOT return any explanation, ONLY the JSON object.`
-                    },
-                    {
-                        type: "image_url",
-                        image_url: {
-                            url: `data:image/png;base64,${base64Image}`
-                        }
-                    }
-                ]
-            }
-        ]
-    };
-
-    console.log('📤 Request payload:', {
-        model: requestBody.model,
-        messageCount: requestBody.messages.length,
-        contentParts: requestBody.messages[0].content.length,
-        hasImage: requestBody.messages[0].content[1].type === 'image_url'
-    });
-
-    // Call Gemini API via OpenRouter
-    const response = await fetch(
-        'https://openrouter.ai/api/v1/chat/completions',
-        {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${GEMINI_API_KEY}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(requestBody)
-        }
-    );
-
-    console.log(`📥 Response status: ${response.status} ${response.statusText}`);
-
-    if (!response.ok) {
-        const error = await response.text();
-        console.error('❌ API Error Response:', error);
-        throw new Error(`OpenRouter API error (${response.status}): ${error}`);
-    }
-
-    const data = await response.json();
-    console.log('📦 Full API Response:', data);
-
-    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-        console.error('❌ Unexpected response structure:', data);
-        throw new Error('Invalid API response structure');
-    }
-
-    const textResponse = data.choices[0].message.content;
-
-    console.log(`✅ Gemini response received (${textResponse.length} chars)`);
-    console.log('📝 Response content:', textResponse);
-
-    // Parse JSON from response
-    const jsonMatch = textResponse.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-        throw new Error("Could not find JSON in Gemini response");
-    }
-
-    const scores = JSON.parse(jsonMatch[0]);
-    console.log(`📊 Parsed scores (raw):`, scores);
-
-    // FALLBACK: If totalScore is missing but we have section scores, calculate it
-    if (!scores.totalScore && scores.readingWriting && scores.math) {
-        scores.totalScore = scores.readingWriting + scores.math;
-        console.log(`✨ Calculated totalScore from sections: ${scores.totalScore}`);
-    }
-
-    // Validate we have at least a total score
-    if (!scores.totalScore) {
-        console.warn('⚠️ Warning: No total score found in response!');
-        console.log('💡 Tip: Check if the PDF image is clear and the total score is visible');
-    }
-
-    console.log(`📊 Final scores:`, scores);
-    return scores;
-}
 
 // Parse SAT/PSAT scores from OCR-extracted text
 // OCR may have irregular spacing, so patterns are flexible
@@ -292,38 +152,168 @@ function parseSatPdfText(text) {
     };
 }
 
+// (This function is in tests.js)
+
+// (This is the only function to replace in tests.js)
+
+async function extractPdfWithGemini(file) {
+    console.log("🤖 Starting PDF extraction process (NEW 2-page method)...");
+
+    if (!OPENROUTER_API_KEY) {
+        throw new Error("API key not found. Please check config.js");
+    }
+    if (typeof window.pdfjsLib === 'undefined') {
+        throw new Error("PDF.js library not loaded");
+    }
+
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    console.log(`📄 PDF loaded: ${pdf.numPages} pages`);
+
+    // --- NEW: Render Page 2 ---
+    const page2 = await pdf.getPage(2);
+    const scale2 = 2.0;
+    const viewport2 = page2.getViewport({ scale: scale2 });
+    const canvas2 = document.createElement('canvas');
+    const context2 = canvas2.getContext('2d');
+    canvas2.height = viewport2.height;
+    canvas2.width = viewport2.width;
+    await page2.render({ canvasContext: context2, viewport: viewport2 }).promise;
+    const page2Image = canvas2.toDataURL('image/png').split(',')[1];
+    console.log(`🖼️ Page 2 rendered (${canvas2.width}x${canvas2.height})`);
+
+    // --- NEW: Render Page 4 ---
+    const page4 = await pdf.getPage(4);
+    const scale4 = 2.0;
+    const viewport4 = page4.getViewport({ scale: scale4 });
+    const canvas4 = document.createElement('canvas');
+    const context4 = canvas4.getContext('2d');
+    canvas4.height = viewport4.height;
+    canvas4.width = viewport4.width;
+    await page4.render({ canvasContext: context4, viewport: viewport4 }).promise;
+    const page4Image = canvas4.toDataURL('image/png').split(',')[1];
+    console.log(`🖼️ Page 4 rendered (${canvas4.width}x${canvas4.height})`);
+
+    console.log(`🤖 Sending 2 images to AI in one call...`);
+
+    // --- NEW: Single, Comprehensive Prompt ---
+    const promptText = `You are an AI assistant reading a 2-page score report.
+- The first image is Page 2, with the main scores.
+- The second image is Page 4, with the question breakdown.
+
+Please extract ALL data from BOTH pages into this single JSON.
+
+CRITICAL: Return ONLY this single JSON object. Use null if a value is not found.
+Required JSON format:
+{
+  "testType": "PSAT",
+  "testDate": "YYYY-MM-DD",
+  "compositeScore": 1100,
+  "sections": {
+    "readingWriting": 540,
+    "math": 560
+  },
+  "testScores": {
+    "reading": 27,
+    "writingAndLanguage": 27,
+    "math": 28.0
+  },
+  "breakdown": {
+    "reading": { "total": 47, "correct": 27, "incorrect": 20, "omitted": 0 },
+    "writingAndLanguage": { "total": 44, "correct": 27, "incorrect": 17, "omitted": 0 },
+    "mathCalculator": { "total": 31, "correct": 20, "incorrect": 11, "omitted": 0 },
+    "mathNoCalculator": { "total": 17, "correct": 9, "incorrect": 4, "omitted": 5 }
+  }
+}
+`;
+
+    const requestBody = {
+        model: "anthropic/claude-3-haiku",
+        messages: [
+            {
+                role: "user",
+                content: [
+                    { type: "text", text: "Here is Page 2 of the score report:" },
+                    { type: "image_url", image_url: { url: `data:image/png;base64,${page2Image}` } },
+                    { type: "text", text: "Here is Page 4 of the score report (the breakdown):" },
+                    { type: "image_url", image_url: { url: `data:image/png;base64,${page4Image}` } },
+                    { type: "text", text: promptText }
+                ]
+            }
+        ]
+    };
+    // --- END: Single, Comprehensive Prompt ---
+
+    const response = await fetch(
+        'https://openrouter.ai/api/v1/chat/completions',
+        {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestBody)
+        }
+    );
+
+    console.log(`📥 Response status: ${response.status} ${response.statusText}`);
+    if (!response.ok) {
+        const error = await response.text();
+        console.error('❌ API Error Response:', error);
+        throw new Error(`OpenRouter API error (${response.status}): ${error}`);
+    }
+
+    const data = await response.json();
+    const textResponse = data.choices[0].message.content;
+    console.log('📝 Raw AI text response:', textResponse);
+
+    const jsonMatch = textResponse.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+        console.warn("Could not find JSON in AI response. Response was:", textResponse);
+        return {}; // Return empty object on failure
+    }
+
+    const scores = JSON.parse(jsonMatch[0]);
+    console.log(`📊 Parsed scores (raw):`, scores);
+
+    // Auto-calculate total score if AI misses it
+    if (!scores.compositeScore && scores.sections?.readingWriting && scores.sections?.math) {
+        scores.compositeScore = scores.sections.readingWriting + scores.sections.math;
+        console.log(`✨ Calculated totalScore from sections: ${scores.compositeScore}`);
+    }
+    if (!scores.compositeScore) {
+        console.warn('⚠️ Warning: No composite/total score found in response!');
+    }
+
+    console.log("✅ Combined AI results:", scores);
+    return scores;
+}
+
 async function importPdf(file) {
     console.log("=== STARTING PDF UPLOAD ===");
     console.log("File:", file.name);
-    console.log("File size:", (file.size / 1024).toFixed(2), "KB");
-    console.log("File type:", file.type);
 
     try {
-        // Extract and parse scores using Gemini AI
-        console.log("⏳ Calling extractPdfWithGemini...");
+        console.log("⏳ Calling extractPdfWithGemini (2-pass)...");
         const parsed = await extractPdfWithGemini(file);
 
         console.log("✅ Extraction complete!");
         console.log("Parsed results:", parsed);
 
-        // Create test entry
         const test = {
             id: makeId(),
             testDate: parsed.testDate || "",
-            totalScore: parsed.totalScore || 0,
-            readingWriting: parsed.readingWriting || 0,
-            math: parsed.math || 0,
-            subscores: {
-                reading: parsed.reading || 0,
-                writing: parsed.writing || 0,
-                command: parsed.command || 0,
-                words: parsed.words || 0,
-                expression: parsed.expression || 0,
-                algebra: parsed.algebra || 0,
-                advancedMath: parsed.advancedMath || 0,
-                problemSolving: parsed.problemSolving || 0
-            },
-            rawSource: "pdf"
+            totalScore: parsed.compositeScore || 0,
+            readingWriting: parsed.sections?.readingWriting || 0,
+            math: parsed.sections?.math || 0,
+            testScores: parsed.testScores || {},
+            
+            // --- NEW ---
+            breakdown: parsed.breakdown || {}, // Save the new breakdown data
+            // --- END NEW ---
+
+            subscores: parsed.subscores || {}, // This might be null now, that's ok
+            rawSource: `pdf (${parsed.testType || 'Unknown'})`
         };
 
         tests.push(test);
@@ -332,7 +322,8 @@ async function importPdf(file) {
         renderChart();
 
         console.log("✅ PDF imported successfully!");
-        alert("PDF imported successfully! 🎉");
+        alert(`${parsed.testType || 'Test'} imported successfully! Score: ${parsed.compositeScore || 'N/A'} 🎉`);
+        closeModal();
 
     } catch (e) {
         console.error("❌ PDF import failed:", e);
@@ -345,8 +336,13 @@ async function importPdf(file) {
 const testsListEl = document.getElementById("tests-list");
 const detailsEl = document.getElementById("test-details");
 
+// (Replace the old renderTestsList in tests.js with this one)
+
 function renderTestsList() {
     if (!testsListEl) return;
+
+    // --- NEW: Add a grid class to the container ---
+    testsListEl.className = 'test-card-grid';
 
     if (!tests.length) {
         testsListEl.innerHTML = "<p>No tests stored yet. Upload a CSV or PDF to get started.</p>";
@@ -357,17 +353,33 @@ function renderTestsList() {
     // Sort by date ascending
     const sorted = [...tests].sort((a, b) => (a.testDate > b.testDate ? 1 : -1));
 
+    // --- NEW: Card-based HTML structure ---
     testsListEl.innerHTML = sorted
         .map(
             (t) => `
-      <div class="test-row" data-id="${t.id}">
-        <div class="test-row-main">
-          <div><strong>${t.testDate || "Unknown date"}</strong></div>
-          <div class="muted">Total: ${t.totalScore || "?"} (RW: ${t.readingWriting || "?"
-                }, Math: ${t.math || "?"})</div>
+      <div class="test-card-item" data-id="${t.id}">
+        <div class="test-card-header">
+          <span class="test-card-date">${t.testDate || "Unknown date"}</span>
+          <span class="test-card-type">${t.rawSource.replace('pdf (', '').replace(')', '') || 'Test'}</span>
         </div>
-        <div class="test-row-actions">
-          <button class="ghost-btn view-test-btn" data-id="${t.id}">View</button>
+        <div class="test-card-body">
+          <div class="test-card-score-total">
+            <span class="score-label">Total</span>
+            <span class="score-value">${t.totalScore || "?"}</span>
+          </div>
+          <div class="test-card-score-sections">
+            <div class="section-score">
+              <span class="score-label">R&W</span>
+              <span class="score-value-small">${t.readingWriting || "?"}</span>
+            </div>
+            <div class="section-score">
+              <span class="score-label">Math</span>
+              <span class="score-value-small">${t.math || "?"}</span>
+            </div>
+          </div>
+        </div>
+        <div class="test-card-actions">
+          <button class="ghost-btn view-test-btn" data-id="${t.id}">View Details</button>
           <button class="ghost-btn danger delete-test-btn" data-id="${t.id}">Delete</button>
         </div>
       </div>
@@ -375,7 +387,7 @@ function renderTestsList() {
         )
         .join("");
 
-    // Attach listeners
+    // Attach listeners (no change here)
     testsListEl.querySelectorAll(".view-test-btn").forEach((btn) => {
         btn.addEventListener("click", () => {
             const id = btn.dataset.id;
@@ -393,32 +405,108 @@ function renderTestsList() {
     });
 }
 
+
+// (Replace the old renderTestDetails in tests.js with this one)
+
 function renderTestDetails(test) {
     if (!detailsEl) return;
 
-    const s = test.subscores || {};
+    // --- NEW HELPER FUNCTION ---
+    // This helper correctly handles '0' and shows it,
+    // but shows '?' for null or undefined.
+    function getStat(value) {
+        if (value === null || value === undefined) {
+            return '?';
+        }
+        return value; // This will now correctly return 0
+    }
+    // --- END HELPER ---
+
+
+    // Safely get all the new data
+    const testReading = getStat(test.testScores?.reading);
+    const testWriting = getStat(test.testScores?.writingAndLanguage);
+    const testMath = getStat(test.testScores?.math);
+    
+    // Get breakdown data, or set defaults
+    const breakdown = test.breakdown || {};
+    const readBD = breakdown.reading || {};
+    const writeBD = breakdown.writingAndLanguage || {};
+    const mathCalcBD = breakdown.mathCalculator || {};
+    const mathNoCalcBD = breakdown.mathNoCalculator || {};
+    // --- End data prep ---
+
     detailsEl.innerHTML = `
-    <h3>Knowledge and Skills</h3>
-    <p><strong>Date:</strong> ${test.testDate || "Unknown"}</p>
-    <p><strong>Score:</strong> ${test.totalScore || "?"}</p>
+    <h3>Test Score Summary</h3>
+    <p>
+      <strong>Test Type:</strong> ${test.rawSource.replace('pdf (', '').replace(')', '') || 'N/A'}
+      <br>
+      <strong>Test Date:</strong> ${test.testDate || "Unknown"}
+    </p>
 
-    <h4>Reading and Writing</h4>
-    <p><strong>Your Reading and Writing Score:</strong> ${test.readingWriting || "?"}</p>
-    <ul>
-      <li>Craft and Structure: ${s.craftStructure || 0}</li>
-      <li>Information and Ideas: ${s.infoIdeas || 0}</li>
-      <li>Standard English Conventions: ${s.stdEnglish || 0}</li>
-      <li>Expression of Ideas: ${s.expressionIdeas || 0}</li>
-    </ul>
+    <!-- Main Section Scores (200-800) -->
+    <div class="score-summary-grid">
+      <div class="score-summary-card total">
+        <div class="score-label">Total Score</div>
+        <div class="score-value">${getStat(test.totalScore)}</div>
+      </div>
+      <div class="score-summary-card">
+        <div class="score-label">Reading & Writing</div>
+        <div class="score-value">${getStat(test.readingWriting)}</div>
+      </div>
+      <div class="score-summary-card">
+        <div class="score-label">Math</div>
+        <div class="score-value">${getStat(test.math)}</div>
+      </div>
+    </div>
 
-    <h4>Math</h4>
-    <p><strong>Your Math Score:</strong> ${test.math || "?"}</p>
-    <ul>
-      <li>Algebra: ${s.algebra || 0}</li>
-      <li>Advanced Math: ${s.advancedMath || 0}</li>
-      <li>Problem Solving & Data Analysis: ${s.psda || 0}</li>
-      <li>Geometry & Trigonometry: ${s.geoTrig || 0}</li>
-    </ul>
+
+    <!-- NEW SECTION: Question Breakdown (from Page 4) -->
+    <h4 class="details-header">Question Breakdown</h4>
+    
+    <!-- Reading -->
+    <div class="breakdown-card">
+      <div class="breakdown-title">Reading</div>
+      <div class="breakdown-stats">
+        <div><span class="stat-label">Total:</span> ${getStat(readBD.total)}</div>
+        <div><span class="stat-label">Correct:</span> ${getStat(readBD.correct)}</div>
+        <div><span class="stat-label">Incorrect:</span> ${getStat(readBD.incorrect)}</div>
+        <div><span class="stat-label">Omitted:</span> ${getStat(readBD.omitted)}</div>
+      </div>
+    </div>
+    
+    <!-- Writing & Language -->
+    <div class="breakdown-card">
+      <div class="breakdown-title">Writing & Language</div>
+      <div class="breakdown-stats">
+        <div><span class="stat-label">Total:</span> ${getStat(writeBD.total)}</div>
+        <div><span class="stat-label">Correct:</span> ${getStat(writeBD.correct)}</div>
+        <div><span class="stat-label">Incorrect:</span> ${getStat(writeBD.incorrect)}</div>
+        <div><span class="stat-label">Omitted:</span> ${getStat(writeBD.omitted)}</div>
+      </div>
+    </div>
+
+    <!-- Math - Calculator -->
+    <div class="breakdown-card">
+      <div class="breakdown-title">Math - Calculator</div>
+      <div class="breakdown-stats">
+        <div><span class="stat-label">Total:</span> ${getStat(mathCalcBD.total)}</div>
+        <div><span class="stat-label">Correct:</span> ${getStat(mathCalcBD.correct)}</div>
+        <div><span class="stat-label">Incorrect:</span> ${getStat(mathCalcBD.incorrect)}</div>
+        <div><span class="stat-label">Omitted:</span> ${getStat(mathCalcBD.omitted)}</div>
+      </div>
+    </div>
+
+    <!-- Math - No Calculator -->
+    <div class="breakdown-card">
+      <div class="breakdown-title">Math - No Calculator</div>
+      <div class="breakdown-stats">
+        <div><span class="stat-label">Total:</span> ${getStat(mathNoCalcBD.total)}</div>
+        <div><span class="stat-label">Correct:</span> ${getStat(mathNoCalcBD.correct)}</div>
+        <div><span class="stat-label">Incorrect:</span> ${getStat(mathNoCalcBD.incorrect)}</div>
+        <div><span class="stat-label">Omitted:</span> ${getStat(mathNoCalcBD.omitted)}</div>
+      </div>
+    </div>
   `;
     detailsEl.classList.remove("hidden");
 }
@@ -437,9 +525,15 @@ function deleteTest(id) {
 }
 
 // ===== CHART (Chart.js) =====
+// (Replace the old renderChart in tests.js with this one)
+
+// ===== CHART (Chart.js) =====
 function renderChart() {
     const canvas = document.getElementById("score-trend");
     if (!canvas) return;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
 
     if (!tests.length) {
         canvas.style.display = "none";
@@ -456,11 +550,18 @@ function renderChart() {
     const labels = sorted.map((t) => t.testDate || "");
     const totals = sorted.map((t) => t.totalScore || 0);
 
+    // --- NEW: Create a gradient for the fill ---
+    const gradient = ctx.createLinearGradient(0, 0, 0, 200);
+    gradient.addColorStop(0, 'rgba(59, 130, 246, 0.4)'); // Your --primary-color
+    gradient.addColorStop(1, 'rgba(59, 130, 246, 0.05)');
+    // --- END NEW ---
+
     if (scoreChart) {
         scoreChart.destroy();
+        scoreChart = null;
     }
 
-    scoreChart = new Chart(canvas.getContext("2d"), {
+    scoreChart = new Chart(ctx, {
         type: "line",
         data: {
             labels,
@@ -468,17 +569,78 @@ function renderChart() {
                 {
                     label: "Total Score",
                     data: totals,
-                    tension: 0.3
+                    tension: 0.3,
+                    
+                    // --- NEW STYLES ---
+                    borderColor: '#3b82f6', // Your --primary-color
+                    borderWidth: 3,
+                    fill: true,
+                    backgroundColor: gradient,
+                    pointBackgroundColor: '#fff',
+                    pointBorderColor: '#3b82f6',
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
+                    pointHoverBorderWidth: 3,
+                    // --- END NEW STYLES ---
                 }
             ]
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false, // Allows height to be set by CSS
             plugins: {
-                legend: { display: false }
+                legend: { display: false }, // No legend
+                
+                // --- NEW: Custom Tooltip ---
+                tooltip: {
+                    enabled: true,
+                    backgroundColor: '#020617', // Your dark bg
+                    titleColor: '#9ca3af',
+                    titleFont: { size: 12, weight: 'normal' },
+                    bodyColor: '#e5e7eb',
+                    bodyFont: { size: 14, weight: 'bold' },
+                    borderColor: 'rgba(148, 163, 184, 0.22)',
+                    borderWidth: 1,
+                    cornerRadius: 8,
+                    displayColors: false, // Hide the little color box
+                    padding: 10,
+                    callbacks: {
+                        label: function(context) {
+                            return `Score: ${context.parsed.y}`;
+                        },
+                        title: function(context) {
+                            return context[0].label; // Show the date
+                        }
+                    }
+                }
+                // --- END NEW TOOLTIP ---
             },
             scales: {
-                y: { beginAtZero: false, suggestedMin: 200, suggestedMax: 1600 }
+                y: {
+                    beginAtZero: false,
+                    suggestedMin: Math.min(...totals) - 50,
+                    suggestedMax: Math.max(...totals) + 50,
+                    
+                    // --- NEW: Hide the axis labels ---
+                    ticks: {
+                        display: false
+                    },
+                    grid: {
+                        drawBorder: false, // No border
+                        color: 'rgba(148, 163, 184, 0.1)' // Lighter grid lines
+                    }
+                },
+                x: {
+                    ticks: {
+                        color: '#9ca3af', // Style the date labels
+                        font: { size: 12 }
+                    },
+                    grid: {
+                        display: false, // No vertical grid lines
+                        drawBorder: false
+                    }
+                }
             }
         }
     });

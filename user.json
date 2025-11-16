@@ -1,6 +1,7 @@
 {
     "email": "student_alpha@example.com",
     "password": "password123",
+    "name": "Student Alpha",
     "currentScore": 10,
     "points": 150,
     "rewards": {

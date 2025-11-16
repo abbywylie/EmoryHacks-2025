@@ -8,42 +8,37 @@ import { auth, db } from '../script.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
 import { doc, getDoc, setDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
-const genericNames = [
-    "Pastel Blob",
-    "Soft Orb",
-    "Cloud Pop",
-    "Mint Puff",
-    "Sun Bubble",
-    "Moon Pearl",
-    "Sky Dot",
+// Avatar pool - names match the PNG filenames in icons/ folder
+const rewardPool = [
+    "Berry Bubble",
     "Blush Marble",
     "Citrus Puff",
-    "Berry Bubble",
+    "Cloud Pop",
     "Frost Orb",
     "Glow Pearl",
+    "Magenta Marble",
+    "Mint Puff",
+    "Moon Pearl",
+    "Nebula Dot",
+    "Pastel Blob",
     "Rose Pop",
-    "Aqua Marble",
-    "Nebula Dot"
-];
-
-// Auto-generate rewards for icons 0–14
-const rewardPool = Array.from({ length: 15 }, (_, i) => ({
-    id: `icon-${i}`,
+    "Sky Dot",
+    "Soft Orb",
+    "Sun Bubble"
+].map(name => ({
+    name: name,
     type: "avatar",
-    name: genericNames[i],
     rarity: "common",
-    iconType: "image",
-    iconSrc: `icons/${i}.png`
+    iconSrc: `icons/${name}.png`
 }));
 
 // Add theme rewards
 const themePool = [
     {
-        id: "theme-ocean",
-        type: "theme",
         name: "Ocean Breeze",
+        type: "theme",
         rarity: "rare",
-        iconSrc: "icons/theme-ocean.png",
+        iconSrc: "icons/Ocean Breeze.png",
         cssVariables: {
             "--primary-color": "#0ea5e9",
             "--secondary-color": "#06b6d4",
@@ -53,11 +48,10 @@ const themePool = [
         }
     },
     {
-        id: "theme-forest",
-        type: "theme",
         name: "Forest Green",
+        type: "theme",
         rarity: "rare",
-        iconSrc: "icons/theme-forest.png",
+        iconSrc: "icons/Forest Green.png",
         cssVariables: {
             "--primary-color": "#10b981",
             "--secondary-color": "#059669",
@@ -67,11 +61,10 @@ const themePool = [
         }
     },
     {
-        id: "theme-sunset",
-        type: "theme",
         name: "Sunset Glow",
+        type: "theme",
         rarity: "epic",
-        iconSrc: "icons/theme-sunset.png",
+        iconSrc: "icons/Sunset Glow.png",
         cssVariables: {
             "--primary-color": "#f59e0b",
             "--secondary-color": "#d97706",
@@ -81,11 +74,10 @@ const themePool = [
         }
     },
     {
-        id: "theme-purple",
-        type: "theme",
         name: "Purple Dream",
+        type: "theme",
         rarity: "epic",
-        iconSrc: "icons/theme-purple.png",
+        iconSrc: "icons/Purple Dream.png",
         cssVariables: {
             "--primary-color": "#a855f7",
             "--secondary-color": "#9333ea",
@@ -96,10 +88,10 @@ const themePool = [
     }
 ];
 
-// Combine all rewards
+// Combine all rewards - this is our reference pool
 const allRewardPool = [...rewardPool, ...themePool];
 
-let tickets = 3;
+let tickets = 0;
 let inventory = [];
 let equippedIcon = null;
 let equippedTheme = null;
@@ -110,13 +102,13 @@ async function loadUserInventory(userId) {
     try {
         const inventoryRef = doc(db, 'users', userId, 'rewards', 'inventory');
         const inventorySnap = await getDoc(inventoryRef);
-        
+
         if (inventorySnap.exists()) {
             const data = inventorySnap.data();
-            inventory = data.items || [];
-            equippedIcon = data.equippedIcon || null;
-            equippedTheme = data.equippedTheme || null;
-            
+            inventory = data.items || []; // Array of item name strings
+            equippedIcon = data.equippedIcon || null; // Item name string
+            equippedTheme = data.equippedTheme || null; // Item name string
+
             // Apply equipped theme
             if (equippedTheme) {
                 applyTheme(equippedTheme);
@@ -148,20 +140,20 @@ async function saveInventory(userId) {
     }
 }
 
-// Equip an item
-async function equipItem(itemId, itemType) {
+// Equip an item (itemName is the string name of the item)
+async function equipItem(itemName, itemType) {
     if (!currentUserId) return;
-    
+
     if (itemType === 'avatar') {
-        equippedIcon = itemId;
+        equippedIcon = itemName;
     } else if (itemType === 'theme') {
-        equippedTheme = itemId;
-        applyTheme(itemId);
+        equippedTheme = itemName;
+        applyTheme(itemName);
     }
-    
+
     await saveInventory(currentUserId);
     renderInventory();
-    
+
     // Save equipped icon to user preferences for profile page
     const prefsRef = doc(db, 'users', currentUserId, 'preferences', 'settings');
     await setDoc(prefsRef, {
@@ -173,17 +165,17 @@ async function equipItem(itemId, itemType) {
 // Unequip an item
 async function unequipItem(itemType) {
     if (!currentUserId) return;
-    
+
     if (itemType === 'avatar') {
         equippedIcon = null;
     } else if (itemType === 'theme') {
         equippedTheme = null;
         removeTheme();
     }
-    
+
     await saveInventory(currentUserId);
     renderInventory();
-    
+
     const prefsRef = doc(db, 'users', currentUserId, 'preferences', 'settings');
     await setDoc(prefsRef, {
         equippedIcon: equippedIcon,
@@ -191,16 +183,16 @@ async function unequipItem(itemType) {
     }, { merge: true });
 }
 
-// Apply theme CSS variables
-function applyTheme(themeId) {
-    const theme = allRewardPool.find(t => t.id === themeId);
+// Apply theme CSS variables (themeName is the string name)
+function applyTheme(themeName) {
+    const theme = getItemByName(themeName);
     if (!theme || !theme.cssVariables) return;
-    
+
     const root = document.documentElement;
     Object.entries(theme.cssVariables).forEach(([key, value]) => {
         root.style.setProperty(key, value);
     });
-    
+
     // Update background gradient
     if (theme.cssVariables['--bg-gradient-start'] && theme.cssVariables['--bg-gradient-end']) {
         document.body.style.background = `radial-gradient(circle at top, ${theme.cssVariables['--bg-gradient-start']}, ${theme.cssVariables['--bg-gradient-end']} 55%)`;
@@ -225,7 +217,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const gumballs = document.querySelectorAll(".gumball");
     const inventoryGridEl = document.getElementById("inventory-grid");
     const homeLink = document.getElementById("home-link");
-    
+
     // Home link click handler
     if (homeLink) {
         homeLink.addEventListener("click", () => {
@@ -243,6 +235,15 @@ document.addEventListener("DOMContentLoaded", () => {
         if (user) {
             currentUserId = user.uid;
             await loadUserInventory(user.uid);
+            const userRef = doc(db, "Users", user.uid);
+            const userSnap = await getDoc(userRef);
+            if (userSnap.exists()) {
+                const userData = userSnap.data();
+                tickets = data.points ?? 0;
+                updateTickets
+            } else {
+                console.warn("User document not found, initializing with 0 tickets");
+            }
             renderInventory();
         } else {
             currentUserId = null;
@@ -267,9 +268,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
         inventoryGridEl.innerHTML = inventory
             .map(
-                (item) => {
-                    const isEquipped = (item.type === 'avatar' && equippedIcon === item.id) || 
-                                     (item.type === 'theme' && equippedTheme === item.id);
+                (itemName) => {
+                    // Fetch item details from name
+                    const item = getItemByName(itemName);
+                    if (!item) return ''; // Skip if item not found
+
+                    const isEquipped = (item.type === 'avatar' && equippedIcon === itemName) ||
+                        (item.type === 'theme' && equippedTheme === itemName);
                     return `
           <div class="inventory-item ${isEquipped ? 'equipped' : ''}">
             <div class="inventory-item-header">
@@ -282,27 +287,27 @@ document.addEventListener("DOMContentLoaded", () => {
               </div>
             </div>
             <div class="inventory-actions">
-              ${isEquipped 
-                ? `<button class="equip-btn unequip" data-item-id="${item.id}" data-item-type="${item.type}">Unequip</button>`
-                : `<button class="equip-btn" data-item-id="${item.id}" data-item-type="${item.type}">Equip</button>`
-              }
+              ${isEquipped
+                            ? `<button class="equip-btn unequip" data-item-name="${item.name}" data-item-type="${item.type}">Unequip</button>`
+                            : `<button class="equip-btn" data-item-name="${item.name}" data-item-type="${item.type}">Equip</button>`
+                        }
             </div>
           </div>
         `;
                 }
             )
             .join("");
-        
+
         // Add event listeners to equip buttons
         document.querySelectorAll('.equip-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
-                const itemId = btn.dataset.itemId;
+                const itemName = btn.dataset.itemName;
                 const itemType = btn.dataset.itemType;
-                
+
                 if (btn.classList.contains('unequip')) {
                     await unequipItem(itemType);
                 } else {
-                    await equipItem(itemId, itemType);
+                    await equipItem(itemName, itemType);
                 }
             });
         });
@@ -341,6 +346,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
         tickets--;
         updateTickets();
+        if (currentUserId) {
+            const userRef = doc(db, "Users", currentUserId);
+            await updateDoc(userRef, {
+                points: tickets
+            });
+        }
 
         // Randomly choose between icon and theme (80% icon, 20% theme)
         const isTheme = Math.random() < 0.2;
@@ -348,15 +359,15 @@ document.addEventListener("DOMContentLoaded", () => {
         const idx = Math.floor(Math.random() * pool.length);
         const reward = pool[idx];
 
-        // add to inventory if not already
-        if (!inventory.find((item) => item.id === reward.id)) {
-            inventory.push(reward);
-            
+        // Add to inventory if not already (store just the name string)
+        if (!inventory.includes(reward.name)) {
+            inventory.push(reward.name);
+
             // Save to Firestore if logged in
             if (currentUserId) {
                 await saveInventory(currentUserId);
             }
-            
+
             renderInventory();
         }
 

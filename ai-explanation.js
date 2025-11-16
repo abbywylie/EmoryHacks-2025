@@ -8,7 +8,9 @@
 // IMPORTANT: Use an OpenRouter API key (sk-or-...)
 // DO NOT use a Google gemini key here.
 
-const OPENROUTER_API_KEY = "";
+import { OPENROUTER_API_KEY } from './config.js';
+
+//const OPENROUTER_API_KEY = "";
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 
 /**

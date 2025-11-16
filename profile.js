@@ -1,6 +1,7 @@
 // Import Firebase Auth functions from script.js
-import { signInWithGoogle, auth } from "./script.js";
-import { onAuthStateChanged, signOut} from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
+import { signInWithGoogle, auth, db } from "./script.js";
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
+import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
 
 const firebaseConfig = {
@@ -88,16 +89,12 @@ export function loadProfilePage() {
 
         // Load equipped icon from Firestore
         try {
-            const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js");
-            const { db } = await import('./script.js');
-            const prefsRef = doc(db, 'users', user.uid, 'preferences', 'settings');
-            const prefsSnap = await getDoc(prefsRef);
+            const userInfo = (await getDoc(doc(db,'Users',user.uid))).data();
 
-            let iconSrc = null;
-            if (prefsSnap.exists() && prefsSnap.data().equippedIcon) {
-                const equippedIconId = prefsSnap.data().equippedIcon;
-                iconSrc = `rewards/icons/${equippedIconId.replace('icon-', '')}.png`;
-            }
+            const rewards = userInfo.rewards;
+            const equippedIcon = rewards.equippedIcon;
+
+            let iconSrc = `./rewards/icons/${equippedIcon}.png`;
 
             if (profilePictureEl) {
                 if (iconSrc) {
@@ -108,6 +105,43 @@ export function loadProfilePage() {
                     profilePictureEl.innerHTML = `<img src="/img/profile-btn.png" style="height: 100%; width: 100%; border-radius:50%; opacity: 1"/>`
                 }
             }
+            
+            const pictureSelection = document.getElementById("profile-picture-selection")
+            const editBtn = document.getElementById("edit-profile");
+
+            const items = rewards.items;
+            const icons = [];
+
+            for (var i of items){
+                if (i.includes("icon-")){
+                    icons.push(i);
+                }
+            }
+
+            for (var i of icons){
+                const reformattedIconName = i.replace("icon-","").replace(" ","%20");
+                pictureSelection.insertAdjacentHTML("beforeend",`<img src="./rewards/icons/${reformattedIconName}.png" class="profile-option" id=${reformattedIconName} style="width:60px; height:60px; border-radius:50%; cursor:pointer"></img>`);
+            }
+
+            editBtn.addEventListener("click", async () => {
+                if (pictureSelection.style.display === "none") {
+                    pictureSelection.style.display = "block";
+                } else {
+                    pictureSelection.style.display = "none";
+                }
+            });
+
+            document.querySelectorAll(".profile-option").forEach(img => {
+                img.addEventListener("click", () => {
+                    const iconId = img.id;
+                    userInfo.rewards.equippedIcon = iconId;
+                    setDoc(doc(db,"Users",user.uid),userInfo).then(function(){
+                        window.location.replace("./profile.html");
+                    });
+                    
+                    console.log(iconId);
+                });
+            });
         } catch (error) {
             console.error("Error loading equipped icon:", error);
             // Fallback to default

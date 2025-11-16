@@ -1,0 +1,7 @@
+# This tells Git to ignore your config file, protecting your API key
+config.js
+
+# Other common files to ignore
+.vscode
+.DS_Store
+node_modules
