@@ -2,8 +2,8 @@
     "email": "student_alpha@example.com",
     "password": "password123",
     "name": "Student Alpha",
-    "currentScore": 10,
-    "points": 150,
+    "currentScore": 0,
+    "points": 0,
     "rewards": {
         "equippedIcon": "https://example.com/icons/default.png",
         "equippedTheme": "default",
@@ -11,56 +11,55 @@
     },
     "skillScores": {
         "Algebra": {
-            "correct": 40,
-            "total": 50,
-            "incorrectQID": ["SAT_MATH_002", "ACT_MATH_001"]
+            "correct": 0,
+            "total": 0,
+            "incorrectQID": []
         },
         "Advanced Math": {
-            "correct": 12,
-            "total": 15,
-            "incorrectQID": ["SAT_MATH_002", "ACT_MATH_001"]
+            "correct": 0,
+            "total": 0,
+            "incorrectQID": []
         },
         "Geometry and Trigonometry": {
-            "correct": 18,
-            "total": 25,
-            "incorrectQID": ["SAT_MATH_002", "ACT_MATH_001"]
+            "correct": 0,
+            "total": 0,
+            "incorrectQID": []
         },
         "Problem-Solving and Data Analysis": {
-            "correct": 40,
-            "total": 50,
-            "incorrectQID": ["SAT_MATH_002", "ACT_MATH_001"]
+            "correct": 0,
+            "total": 0,
+            "incorrectQID": []
         },
         "Information and Ideas": {
-            "correct": 30,
-            "total": 45,
-            "incorrectQID": ["SAT_MATH_002", "ACT_MATH_001"]
+            "correct": 0,
+            "total": 0,
+            "incorrectQID": []
         },
         "Craft & Structure": {
-            "correct": 40,
-            "total": 50,
-            "incorrectQID": ["SAT_MATH_002", "ACT_MATH_001"]
+            "correct": 0,
+            "total": 0,
+            "incorrectQID": []
         },
         "Expression of Ideas": {
-            "correct": 40,
-            "total": 50,
-            "incorrectQID": ["SAT_MATH_002", "ACT_MATH_001"]
+            "correct": 0,
+            "total": 0,
+            "incorrectQID": []
         },
         "Conventions of Standard English": {
-            "correct": 40,
-            "total": 50,
-            "incorrectQID": ["SAT_MATH_002", "ACT_MATH_001"]
+            "correct": 0,
+            "total": 0,
+            "incorrectQID": []
         }
     },
     "sessions":{
         "session1":{
             "answers": [
-                {"questionID": "SAT_MATH_001", "isCorrect": true, "rationale": "", "timestamp": "2024-12-01T10:00:00Z", "userAnswer": "A"},
-                {"questionID": "ACT_MATH_001", "isCorrect": false, "rationale": "", "timestamp": "2024-12-01T10:05:00Z", "userAnswer": "B"},
-                {"questionID": "SAT_READING_WRITING_001", "isCorrect": true, "rationale": "", "timestamp": "2024-12-01T10:10:00Z", "userAnswer": "C"}
+                {"questionID": "", "isCorrect": true, "rationale": "", "timestamp": "", "userAnswer": ""}
+                
             ],
-            "questions": ["SAT_MATH_001", "ACT_MATH_001", "SAT_READING_WRITING_001"],
-            "sessionID": "session1",
-            "timestamp": "2024-12-01T10:00:00Z"
+            "questions": [],
+            "sessionID": "",
+            "timestamp": ""
         } 
 }
 }

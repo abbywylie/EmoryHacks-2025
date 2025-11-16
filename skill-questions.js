@@ -303,11 +303,15 @@ function renderReviewOptions(question) {
         return '';
     }
     
+    function normalizeAnswer(ans){
+        return String(ans).trim().toLowerCase();
+    }
+
     return `
         <div class="review-options">
             ${question.options.map(option => {
-                const isUserAnswer = option === question.userAnswer;
-                const isCorrectAnswer = option === question.correctAnswer;
+                const isUserAnswer = normalizeAnswer(option) === normalizeAnswer(question.userAnswer);
+                const isCorrectAnswer = normalizeAnswer(option) === normalizeAnswer(question.correctAnswer);
                 
                 let className = 'review-option';
                 if (isCorrectAnswer) {
