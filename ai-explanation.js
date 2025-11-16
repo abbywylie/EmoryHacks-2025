@@ -58,6 +58,8 @@ export async function getAIExplanation(question, userAnswer, rationale) {
 }
 
 function buildPrompt(question, userAnswer, rationale) {
+    const optionsArray = Array.isArray(question.options) ? question.options 
+    : ["A", "B", "C", "D"].map(letter => question[letter] || "");
     return `You are an SAT tutor helping a student understand why their answer was incorrect.
 
 Question: ${question.text}
@@ -65,9 +67,9 @@ Question: ${question.text}
 Options:
 ${question.options.map((opt, i) => `${String.fromCharCode(65 + i)}. ${opt}`).join('\n')}
 
-Correct Answer: ${question.correctAnswer}
+Correct Answer: ${question.correctAnswer || question.answer}
 Student's Answer: ${userAnswer}
-Explanation Text: ${question.explanationText}
+Explanation Text: ${question.explanationText || question.explanation || ''}
 
 Student's Reasoning: "${rationale}"
 
