@@ -318,6 +318,38 @@ export async function getAdaptiveQuestions(count = 5) {
     return finalQuestions;
 }
 
+function showTicketAnimation() {
+    // Create ticket emoji element
+    const ticket = document.createElement('div');
+    ticket.className = 'ticket-bubble';
+    ticket.textContent = '🎟️ +1';
+    
+    // Position it in the center of the screen
+    ticket.style.position = 'fixed';
+    ticket.style.left = '50%';
+    ticket.style.top = '50%';
+    ticket.style.transform = 'translate(-50%, -50%)';
+    ticket.style.fontSize = '48px';
+    ticket.style.fontWeight = 'bold';
+    ticket.style.zIndex = '9999';
+    ticket.style.pointerEvents = 'none';
+    ticket.style.opacity = '1';
+    
+    document.body.appendChild(ticket);
+    
+    // Animate upward and fade out
+    setTimeout(() => {
+        ticket.style.transition = 'all 1.5s ease-out';
+        ticket.style.transform = 'translate(-50%, -200%)';
+        ticket.style.opacity = '0';
+    }, 10);
+    
+    // Remove element after animation
+    setTimeout(() => {
+        ticket.remove();
+    }, 1600);
+}
+
 function calculateSkillAccuracy(skillScores) {
     const accuracyData = {};
     for (const category in skillScores) {
@@ -589,14 +621,28 @@ export async function updateUserProgress(questionId, isCorrect, skillCategory, t
             category: categoryKey
         };
 
+        // Award tickets for correct answers
+        let pointsToAward = 0;
+        if (isCorrect) {
+            pointsToAward = 1; // Award 1 ticket per correct answer
+        }
+
+        // Get current points
+        const currentPoints = currentProgress.points || 0;
+        const newPoints = currentPoints + pointsToAward;
+
         // Update the user document
         await setDoc(userRef, {
             skillScores: skillScores,
             attemptedQuestions: attemptedQuestions,
-            answers: arrayUnion(answerData)
+            answers: arrayUnion(answerData),
+            points: newPoints
         }, { merge: true });
 
         console.log(`Updated progress for ${categoryKey}: ${isCorrect ? 'correct' : 'incorrect'}`);
+        if (pointsToAward > 0) {
+            console.log(`🎟️ Awarded ${pointsToAward} ticket(s)! Total: ${newPoints}`);
+        }
 
         // Reload progress
         await loadUserProgress();
@@ -1108,6 +1154,9 @@ if (submitBtn) {
             // Save immediately and show Next
             await saveAnswerToSession(currentQuestion.id, selectedOptionText, isCorrect, '');
             await updateUserProgress(currentQuestion.id, isCorrect, currentQuestion.skillCategory, currentQuestion.tags || [], currentQuestion, selectedOptionText, '');
+
+            // Show ticket animation
+            showTicketAnimation();
 
             // Hide rationale/explanation elements
             rationaleSection.classList.add("hidden");
