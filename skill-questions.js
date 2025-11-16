@@ -288,9 +288,6 @@ function renderReviewQuestions(questions) {
                         <span class="correct-icon">✓</span> Correct Answer: <strong class="correct-answer">${question.correctAnswer}</strong>
                     </div>
                 </div>
-                <div class="review-explanation">
-                    <strong>Explanation:</strong> ${question.explanation || 'No explanation available.'}
-                </div>
             </div>
         </div>
     `).join('');

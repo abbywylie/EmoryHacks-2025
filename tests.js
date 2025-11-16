@@ -171,16 +171,19 @@ async function extractPdfWithGemini(file) {
     const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
     console.log(`📄 PDF loaded: ${pdf.numPages} pages`);
 
-    // Check if PDF has at least 1 page
     if (pdf.numPages < 1) {
         throw new Error(`PDF is empty or invalid.`);
     }
 
     let promptText, requestBody;
 
-    // Try SAT format first (page 1 only)
-    try {
-        console.log("📋 Trying SAT format (page 1)...");
+    // Determine format based on page count
+    // SAT reports typically have 1-3 pages, PSAT reports have 4+ pages
+    const isPSAT = pdf.numPages >= 4;
+
+    if (!isPSAT) {
+        // SAT FORMAT (Page 1 only)
+        console.log("📋 Processing as SAT format (page 1)...");
         
         const page1 = await pdf.getPage(1);
         const scale1 = 2.0;
@@ -193,14 +196,20 @@ async function extractPdfWithGemini(file) {
         const page1Image = canvas1.toDataURL('image/png').split(',')[1];
         console.log(`🖼️ Page 1 rendered (${canvas1.width}x${canvas1.height})`);
 
-        promptText = `You are an AI assistant reading a score report. Determine if this is an SAT or PSAT report.
+        promptText = `You are an AI assistant reading an SAT score report.
 
-Please extract ALL score data from this page into a JSON object.
+Extract ALL score data from this SAT report image into a JSON object.
 
-CRITICAL: Return ONLY a single JSON object. Use null if a value is not found.
+CRITICAL INSTRUCTIONS:
+- Return ONLY a single valid JSON object
+- Use null for any value not found in the image
+- The SAT has a composite score from 400-1600
+- Reading and Writing section: 200-800
+- Math section: 200-800
+
 Required JSON format:
 {
-  "testType": "SAT" or "PSAT",
+  "testType": "SAT",
   "testDate": "YYYY-MM-DD",
   "compositeScore": 1200,
   "sections": {
@@ -214,12 +223,19 @@ Required JSON format:
     "Standard English Conventions": 8,
     "Heart of Algebra": 8,
     "Problem Solving and Data Analysis": 8,
-    "Passport to Advanced Math": 8
+    "Passport to Advanced Math": 8,
+    "Geometry and Trigonometry": 8
   }
 }
 
-Extract the total score, section scores (Reading and Writing, Math), and all available subscores or skill-level scores.
-`;
+Look for:
+- Total/Composite Score (400-1600)
+- Evidence-Based Reading and Writing OR Reading and Writing score (200-800)
+- Math score (200-800)
+- Test date (usually in format like "October 10, 2023")
+- Any subscores or test scores visible on the page
+
+Return ONLY the JSON object, no other text.`;
 
         requestBody = {
             model: "anthropic/claude-3-haiku",
@@ -227,21 +243,17 @@ Extract the total score, section scores (Reading and Writing, Math), and all ava
                 {
                     role: "user",
                     content: [
-                        { type: "text", text: "Here is the score report page:" },
+                        { type: "text", text: "Here is the SAT score report:" },
                         { type: "image_url", image_url: { url: `data:image/png;base64,${page1Image}` } },
                         { type: "text", text: promptText }
                     ]
                 }
             ]
         };
-    } catch (page1Error) {
-        console.log("⚠️ Page 1 extraction failed, trying PSAT format (pages 2 and 4)...");
+    } else {
+        // PSAT FORMAT (Pages 2 and 4)
+        console.log("📋 Processing as PSAT format (pages 2 and 4)...");
         
-        // Fall back to PSAT format (pages 2 and 4)
-        if (pdf.numPages < 4) {
-            throw new Error(`PDF appears to be PSAT format but only has ${pdf.numPages} pages. Need at least 4 pages.`);
-        }
-
         const page2 = await pdf.getPage(2);
         const scale2 = 2.0;
         const viewport2 = page2.getViewport({ scale: scale2 });
@@ -265,12 +277,19 @@ Extract the total score, section scores (Reading and Writing, Math), and all ava
         console.log(`🖼️ Page 4 rendered (${canvas4.width}x${canvas4.height})`);
 
         promptText = `You are an AI assistant reading a PSAT score report.
-- The first image is Page 2, with the main scores.
-- The second image is Page 4, with the question breakdown.
 
-Please extract ALL data from BOTH pages into this single JSON.
+I'm providing you with TWO pages:
+- First image: Page 2 (main scores)
+- Second image: Page 4 (question breakdown)
 
-CRITICAL: Return ONLY this single JSON object. Use null if a value is not found.
+Extract ALL data from BOTH pages into a single JSON object.
+
+CRITICAL INSTRUCTIONS:
+- Return ONLY a single valid JSON object
+- Use null for any value not found
+- PSAT composite scores range from 320-1520
+- Section scores: 160-760 each
+
 Required JSON format:
 {
   "testType": "PSAT",
@@ -283,16 +302,27 @@ Required JSON format:
   "testScores": {
     "reading": 27,
     "writingAndLanguage": 27,
-    "math": 28.0
+    "math": 28
   },
   "breakdown": {
     "reading": { "total": 47, "correct": 27, "incorrect": 20, "omitted": 0 },
     "writingAndLanguage": { "total": 44, "correct": 27, "incorrect": 17, "omitted": 0 },
     "mathCalculator": { "total": 31, "correct": 20, "incorrect": 11, "omitted": 0 },
-    "mathNoCalculator": { "total": 17, "correct": 9, "incorrect": 4, "omitted": 5 }
+    "mathNoCalculator": { "total": 17, "correct": 9, "incorrect": 4, "omitted": 0 }
   }
 }
-`;
+
+From Page 2, extract:
+- Total Score (320-1520)
+- Reading and Writing section score (160-760)
+- Math section score (160-760)
+- Test date
+- Test scores (8-38 scale)
+
+From Page 4, extract:
+- Question breakdowns showing total/correct/incorrect/omitted for each section
+
+Return ONLY the JSON object, no other text.`;
 
         requestBody = {
             model: "anthropic/claude-3-haiku",
@@ -300,9 +330,9 @@ Required JSON format:
                 {
                     role: "user",
                     content: [
-                        { type: "text", text: "Here is Page 2 of the score report:" },
+                        { type: "text", text: "Here is Page 2 of the PSAT score report:" },
                         { type: "image_url", image_url: { url: `data:image/png;base64,${page2Image}` } },
-                        { type: "text", text: "Here is Page 4 of the score report (the breakdown):" },
+                        { type: "text", text: "Here is Page 4 of the PSAT score report:" },
                         { type: "image_url", image_url: { url: `data:image/png;base64,${page4Image}` } },
                         { type: "text", text: promptText }
                     ]
@@ -311,6 +341,7 @@ Required JSON format:
         };
     }
 
+    // Make API call
     const response = await fetch(
         'https://openrouter.ai/api/v1/chat/completions',
         {
@@ -334,25 +365,28 @@ Required JSON format:
     const textResponse = data.choices[0].message.content;
     console.log('📝 Raw AI text response:', textResponse);
 
+    // Extract JSON from response
     const jsonMatch = textResponse.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
         console.warn("Could not find JSON in AI response. Response was:", textResponse);
-        return {}; // Return empty object on failure
+        throw new Error("AI did not return valid JSON. Please try uploading the PDF again.");
     }
 
     const scores = JSON.parse(jsonMatch[0]);
     console.log(`📊 Parsed scores (raw):`, scores);
 
-    // Auto-calculate total score if AI misses it
+    // Auto-calculate total score if missing
     if (!scores.compositeScore && scores.sections?.readingWriting && scores.sections?.math) {
         scores.compositeScore = scores.sections.readingWriting + scores.sections.math;
-        console.log(`✨ Calculated totalScore from sections: ${scores.compositeScore}`);
-    }
-    if (!scores.compositeScore) {
-        console.warn('⚠️ Warning: No composite/total score found in response!');
+        console.log(`✨ Calculated compositeScore from sections: ${scores.compositeScore}`);
     }
 
-    console.log("✅ Combined AI results:", scores);
+    if (!scores.compositeScore) {
+        console.warn('⚠️ Warning: No composite/total score found!');
+        throw new Error("Could not extract scores from PDF. Please check if this is a valid score report.");
+    }
+
+    console.log("✅ Final parsed scores:", scores);
     return scores;
 }
 
