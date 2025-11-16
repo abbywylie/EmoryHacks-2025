@@ -8,6 +8,7 @@ import { getFirestore, collection, doc, getDoc, setDoc, getDocs, query, where, a
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-analytics.js";
 import { applyTheme } from "./rewards/gatcha.js";
 import { loadIndexPage } from "./profile.js";
+import { getAIExplanation } from "./ai-explanation.js";
 
 //configuration of firebase
 const firebaseConfig = {
