@@ -696,6 +696,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const topicChip = document.getElementById("topic-chip");
     const questionCounter = document.getElementById("question-counter");
     const questionOptions = document.getElementById("question-options");
+    const answerInput = document.getElementById("answer-input");
     const rationaleSection = document.getElementById("rationale-section");
     const rationaleInput = document.getElementById("rationale-input");
     const unsureBtn = document.getElementById("unsure-btn");
@@ -717,27 +718,27 @@ document.addEventListener("DOMContentLoaded", () => {
         loginBtn.addEventListener("click", async () => {
             signInWithPopup(auth, googleProvider)
                 .then(async (result) => {
-                const user = result.user;
+                    const user = result.user;
 
-                // ✅ Set currentUserId immediately
-                currentUserId = user.uid;
+                    // ✅ Set currentUserId immediately
+                    currentUserId = user.uid;
 
-                console.log("User signed in:", user.displayName, user.email);
-                var userDoc = await getDoc(doc(db,'Users',currentUserId));
-                if (!userDoc.exists()){
-                    loadJSON('./user.json',async function(data){
-                        setDoc(doc(db,'Users',currentUserId),data);
-                        console.log("New user document created in Firestore");
-                    });
-                }
-                console.log("User document created in Firestore");
+                    console.log("User signed in:", user.displayName, user.email);
+                    var userDoc = await getDoc(doc(db, 'Users', currentUserId));
+                    if (!userDoc.exists()) {
+                        loadJSON('./user.json', async function (data) {
+                            setDoc(doc(db, 'Users', currentUserId), data);
+                            console.log("New user document created in Firestore");
+                        });
+                    }
+                    console.log("User document created in Firestore");
 
-                loadIndexPage(); // Now safe to proceed
+                    loadIndexPage(); // Now safe to proceed
 
-            })
-            .catch ((error) => {
-                console.error("Error signing in:", error.message);
-            });
+                })
+                .catch((error) => {
+                    console.error("Error signing in:", error.message);
+                });
         });
     }
 
@@ -835,17 +836,50 @@ document.addEventListener("DOMContentLoaded", () => {
     topicChip.textContent = q.type || q.topic || "Question";
     questionCounter.textContent = `Question ${currentIndex + 1} / ${questions.length}`;
 
-    // Render options
-    renderOptions(q);
+        // Render options first to check what gets rendered
+        renderOptions(q);
 
-    // Reset state
-    selectedAnswer = null;
-    isUnsure = false;
-    rationaleSection.classList.add("hidden");
-    answerFeedback.classList.add("hidden");
-    aiExplanationPanel.classList.add("hidden");
-    submitBtn.classList.remove("hidden");
-    nextBtn.classList.add("hidden");
+        // Check if options were actually rendered (has .option-item elements)
+        const hasRenderedOptions = questionOptions && questionOptions.querySelector('.option-item');
+        const answerInputSection = document.querySelector('.answer-input-section');
+
+        console.log('Question:', q.questionText?.substring(0, 50));
+        console.log('Has options array:', q.options?.length || 0);
+        console.log('Has rendered option items:', hasRenderedOptions ? 'yes' : 'no');
+
+        if (answerInputSection) {
+            if (hasRenderedOptions) {
+                // Has clickable options - hide text input
+                answerInputSection.style.display = 'none';
+                console.log('Hiding text input, showing clickable options');
+            } else {
+                // No clickable options - show text input for user to type answer
+                answerInputSection.style.display = 'block';
+                console.log('Showing text input for free response');
+            }
+        }
+
+        // Reset state
+        selectedAnswer = null;
+        isUnsure = false;
+        rationaleSection.classList.add("hidden");
+        answerFeedback.classList.add("hidden");
+        aiExplanationPanel.classList.add("hidden");
+        submitBtn.classList.remove("hidden");
+        nextBtn.classList.add("hidden");
+
+        // Clear text input
+        if (answerInput) {
+            answerInput.value = '';
+            answerInput.classList.remove('correct', 'incorrect');
+            answerInput.disabled = false;
+            // Auto-focus the input for non-multiple choice questions
+            // Re-check after rendering
+            const hasOptions = questionOptions && questionOptions.querySelector('.option-item');
+            if (!hasOptions) {
+                setTimeout(() => answerInput.focus(), 100);
+            }
+        }
 
     // Clear previous option selections
     document.querySelectorAll('.option-item').forEach(item => {
@@ -855,8 +889,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     function renderOptions(question) {
-        if (!question.options || question.options.length === 0) {
-            questionOptions.innerHTML = '<p>No options available for this question.</p>';
+        // If no options or only 1 option (placeholder), treat as free response
+        if (!question.options || question.options.length === 0 || question.options.length === 1) {
+            questionOptions.innerHTML = '';
             return;
         }
 
@@ -884,7 +919,20 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Unsure button
+    // Handle text input for answers (for non-multiple choice questions)
+    if (answerInput) {
+        answerInput.addEventListener('input', (e) => {
+            const value = e.target.value.trim();
+            selectedAnswer = value || null;
+        });
+
+        // Also support Enter key to submit
+        answerInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && selectedAnswer && submitBtn && !submitBtn.classList.contains('hidden')) {
+                submitBtn.click();
+            }
+        });
+    }    // Unsure button
     if (unsureBtn) {
         unsureBtn.addEventListener("click", () => {
             isUnsure = !isUnsure;
@@ -961,35 +1009,32 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    function normalize(str) {
-    return String(str || '').trim().toLowerCase();
-    }
-
     function showAnswerFeedback(isCorrect, question) {
-    answerFeedback.classList.remove("hidden");
-    answerFeedback.className = `answer-feedback ${isCorrect ? 'correct' : 'incorrect'}`;
+        const normalize = str => String(str).trim().toLowerCase();
 
-    if (isCorrect) {
-        answerFeedback.innerHTML = `<strong>✓ Correct!</strong> ${question.explanation || 'Great job!'}`;
-    } else {
-        answerFeedback.innerHTML = `
+        answerFeedback.classList.remove("hidden");
+        answerFeedback.className = `answer-feedback ${isCorrect ? 'correct' : 'incorrect'}`;
+
+        if (isCorrect) {
+            answerFeedback.innerHTML = `<strong>✓ Correct!</strong> ${question.explanation || 'Great job!'}`;
+        } else {
+            answerFeedback.innerHTML = `
             <strong>✗ Incorrect.</strong> The correct answer is <strong>${question.correctAnswer}</strong>.
         `;
+        }
+
+        // Highlight correct/incorrect options
+        document.querySelectorAll('.option-item').forEach(item => {
+            const optionLabel = item.dataset.option; // "A", "B", ...
+            const optionText = item.querySelector('.option-text')?.textContent || "";
+
+            if (normalize(optionText) === normalize(question.correctAnswer)) {
+                item.classList.add('correct');
+            } else if (optionLabel === selectedAnswer) {
+                item.classList.add('incorrect');
+            }
+        });
     }
-
-    // Highlight correct/incorrect options
-    document.querySelectorAll('.option-item').forEach(item => {
-    const optionLabel = item.dataset.option; // "A", "B", ...
-    const optionText = item.querySelector('.option-text')?.textContent || "";
-
-    if (normalize(optionText) === normalize(question.correctAnswer)) {
-        item.classList.add('correct');
-    } else if (optionLabel === selectedAnswer) {
-        item.classList.add('incorrect');
-    }
-});
-
-}
 
     async function showAIExplanation(question, userAnswer, rationale) {
         try {
