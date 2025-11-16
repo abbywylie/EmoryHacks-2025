@@ -139,6 +139,8 @@ onAuthStateChanged(auth, async (user) => {
                 });
             }
 
+            setDoc(doc(db,'Users',currentUserId,'email'),user.email);
+
             console.log("User is signed in:", user.uid);
 
             // 1. Hide Login Button, Show Profile Section (Fixes the visible button issue)
@@ -614,12 +616,15 @@ document.addEventListener("DOMContentLoaded", () => {
                     const user = result.user;
                     console.log("User signed in:", user.displayName, user.email);
                     //save to firestore
-                    const db = getFirestore();
-                    setDoc(doc(db, 'Users', user.uid), {
-                        name: user.displayName,
-                        email: user.email
-                    });
-                    console.log("User document created/updated in Firestore");
+                    // const db = getFirestore();
+                    // setDoc(doc(db, 'Users', user.uid, 'name'), {
+                    //     name: user.displayName,
+                    //     email: user.email
+                    // });
+                    // console.log("User document created/updated in Firestore");
+
+                    setDoc(doc(db,'Users',user.uid,'name'))
+
                     loadIndexPage();
                 })
                 .catch((error) => {
