@@ -2,6 +2,7 @@
 
 import { auth, db } from './script.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 import { loadWrongQuestionsForCategory } from './script.js';
 
 // Mock data for wrong answers (fallback if not logged in)
@@ -126,7 +127,7 @@ const skillData = {
     "Expression of Ideas": { performance: "800-800", score: 800, progressWidth: 100 }
 };
 
-document.addEventListener("DOMContentLoaded", async () => {
+document.addEventListener("DOMContentLoaded", () => {
     // Get the selected skill from localStorage
     const selectedSkill = localStorage.getItem('selectedSkill');
     
@@ -138,38 +139,103 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Update the header with skill info
     document.getElementById('skill-title').textContent = selectedSkill;
     
-    const skill = skillData[selectedSkill];
-    if (skill) {
-        document.getElementById('skill-score').textContent = skill.performance;
-        document.getElementById('skill-progress-bar').style.width = skill.progressWidth + '%';
-    }
+    // Clear score info until we load it
+    document.getElementById('skill-score').textContent = 'Loading...';
+    document.getElementById('skill-progress-bar').style.width = '0%';
     
-    // Load wrong questions from Firebase
-    await loadAndRenderWrongQuestions(selectedSkill);
+    // Show initial loading state
+    const container = document.getElementById('questions-container');
+    container.innerHTML = '<div class="loading">Checking authentication...</div>';
+    
+    // Wait for auth state to be ready before loading questions and skill data
+    // We need to wait a bit for auth to restore from localStorage/cookies
+    let authCheckCount = 0;
+    onAuthStateChanged(auth, async (user) => {
+        authCheckCount++;
+        console.log(`🔐 Auth state changed (${authCheckCount}), user:`, user ? user.uid : 'Not logged in');
+        
+        // If this is the first call and user is null, wait for potential second call
+        if (authCheckCount === 1 && !user) {
+            console.log('⏳ Waiting for auth to potentially restore session...');
+            // Give Firebase 500ms to restore the session
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Check again
+            const currentUser = auth.currentUser;
+            console.log('� Re-checked auth.currentUser:', currentUser ? currentUser.uid : 'Still not logged in');
+            
+            if (currentUser) {
+                // User was restored, use that
+                await loadSkillDataFromFirebase(currentUser, selectedSkill);
+                await loadAndRenderWrongQuestions(selectedSkill, currentUser);
+                return;
+            }
+        }
+        
+        // Load actual skill data from Firebase if user is logged in
+        if (user) {
+            await loadSkillDataFromFirebase(user, selectedSkill);
+        }
+        
+        await loadAndRenderWrongQuestions(selectedSkill, user);
+    });
 });
 
+// Load skill performance data from Firebase
+async function loadSkillDataFromFirebase(user, skillName) {
+    try {
+        const userRef = doc(db, 'users', user.uid);
+        const userSnap = await getDoc(userRef);
+        
+        if (userSnap.exists()) {
+            const userData = userSnap.data();
+            const skillScores = userData.skillScores || {};
+            const skillData = skillScores[skillName];
+            
+            if (skillData && skillData.total > 0) {
+                const accuracy = (skillData.correct / skillData.total) * 100;
+                const performanceText = `${Math.round(accuracy)}% (${skillData.correct}/${skillData.total})`;
+                const progressWidth = accuracy;
+                
+                document.getElementById('skill-score').textContent = performanceText;
+                document.getElementById('skill-progress-bar').style.width = progressWidth + '%';
+            } else {
+                // No data for this skill yet
+                document.getElementById('skill-score').textContent = 'No data yet';
+                document.getElementById('skill-progress-bar').style.width = '0%';
+            }
+        }
+    } catch (error) {
+        console.error('Error loading skill data:', error);
+    }
+}
+
 // Load and render wrong questions from Firebase
-async function loadAndRenderWrongQuestions(selectedSkill) {
+async function loadAndRenderWrongQuestions(selectedSkill, user) {
     const container = document.getElementById('questions-container');
+    
+    console.log('=== LOADING WRONG QUESTIONS ===');
+    console.log('Selected skill:', selectedSkill);
+    console.log('User passed to function:', user ? user.uid : 'Not logged in');
     
     // Show loading state
     container.innerHTML = '<div class="loading">Loading questions...</div>';
     
     try {
-        // Check if user is logged in
-        const user = auth.currentUser;
-        
         let questions = [];
         
         if (user) {
             // Load from Firebase
-            console.log(`Loading wrong questions for category: ${selectedSkill}`);
+            console.log(`📥 Loading wrong questions for category: ${selectedSkill}`);
+            console.log(`📥 Calling loadWrongQuestionsForCategory...`);
             questions = await loadWrongQuestionsForCategory(selectedSkill);
-            console.log(`Loaded ${questions.length} wrong questions from Firebase`);
+            console.log(`✅ Loaded ${questions.length} wrong questions from Firebase`);
+            console.log('Questions data:', questions);
         } else {
             // Fallback to mock data if not logged in
-            console.log('User not logged in, using mock data');
+            console.warn('⚠️ User not logged in, using mock data');
             questions = mockWrongQuestions[selectedSkill] || [];
+            console.log(`📦 Mock data questions:`, questions.length);
         }
         
         // Update header with question count
