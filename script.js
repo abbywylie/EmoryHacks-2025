@@ -724,6 +724,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const topicChip = document.getElementById("topic-chip");
     const questionCounter = document.getElementById("question-counter");
     const questionOptions = document.getElementById("question-options");
+    const answerInput = document.getElementById("answer-input");
     const rationaleSection = document.getElementById("rationale-section");
     const rationaleInput = document.getElementById("rationale-input");
     const unsureBtn = document.getElementById("unsure-btn");
@@ -831,8 +832,15 @@ document.addEventListener("DOMContentLoaded", () => {
         topicChip.textContent = q.type || q.topic || "Question";
         questionCounter.textContent = `Question ${currentIndex + 1} / ${questions.length}`;
 
-        // Render options
+        // Render options first to check what gets rendered
         renderOptions(q);
+
+        // Always hide text input for now - only use clickable options
+        // TODO: Show text input only for grid-in/free response questions
+        const answerInputSection = document.querySelector('.answer-input-section');
+        if (answerInputSection) {
+            answerInputSection.style.display = 'none';
+        }
 
         // Reset state
         selectedAnswer = null;
@@ -842,6 +850,19 @@ document.addEventListener("DOMContentLoaded", () => {
         aiExplanationPanel.classList.add("hidden");
         submitBtn.classList.remove("hidden");
         nextBtn.classList.add("hidden");
+
+        // Clear text input
+        if (answerInput) {
+            answerInput.value = '';
+            answerInput.classList.remove('correct', 'incorrect');
+            answerInput.disabled = false;
+            // Auto-focus the input for non-multiple choice questions
+            // Re-check after rendering
+            const hasOptions = questionOptions && questionOptions.querySelector('.option-item');
+            if (!hasOptions) {
+                setTimeout(() => answerInput.focus(), 100);
+            }
+        }
 
         // Clear option selections
         document.querySelectorAll('.option-item').forEach(item => {
@@ -879,7 +900,28 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Unsure button
+    // Handle text input for answers (for non-multiple choice questions)
+    if (answerInput) {
+        answerInput.addEventListener('input', (e) => {
+            const value = e.target.value.toUpperCase().trim();
+            
+            // Only allow A, B, C, D
+            if (value && !['A', 'B', 'C', 'D'].includes(value)) {
+                e.target.value = '';
+                return;
+            }
+            
+            e.target.value = value;
+            selectedAnswer = value || null;
+        });
+
+        // Also support Enter key to submit
+        answerInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && selectedAnswer && submitBtn && !submitBtn.classList.contains('hidden')) {
+                submitBtn.click();
+            }
+        });
+    }    // Unsure button
     if (unsureBtn) {
         unsureBtn.addEventListener("click", () => {
             isUnsure = !isUnsure;
@@ -956,8 +998,36 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+<<<<<<< Updated upstream
     function normalize(str) {
     return String(str || '').trim().toLowerCase();
+=======
+        if (isCorrect) {
+            answerFeedback.innerHTML = `
+                <strong>✓ Correct!</strong> ${question.explanation || 'Great job!'}
+            `;
+        } else {
+            answerFeedback.innerHTML = `
+                <strong>✗ Incorrect.</strong> The correct answer is <strong>${question.correctAnswer}</strong>.
+            `;
+        }
+
+        // Style the text input
+        if (answerInput) {
+            answerInput.classList.add(isCorrect ? 'correct' : 'incorrect');
+            answerInput.disabled = true;
+        }
+
+        // Highlight correct/incorrect options
+        document.querySelectorAll('.option-item').forEach(item => {
+            const optionLabel = item.dataset.option;
+            if (optionLabel === question.correctAnswer) {
+                item.classList.add('correct');
+            } else if (optionLabel === selectedAnswer) {
+                item.classList.add('incorrect');
+            }
+        });
+>>>>>>> Stashed changes
     }
 
     function showAnswerFeedback(isCorrect, question) {
