@@ -254,12 +254,15 @@ document.addEventListener("DOMContentLoaded", async () => {
             const userSnap = await getDoc(userRef);
             if (userSnap.exists()) {
                 const userData = userSnap.data();
-                tickets = userData.points;
-                equippedIcon = userData.rewards.equippedIcon;
-                equippedTheme = userData.rewards.equippedTheme;
+                tickets = userData.points || 0;
+                equippedIcon = userData.rewards?.equippedIcon || "";
+                equippedTheme = userData.rewards?.equippedTheme || "";
                 updateTickets();
+                console.log(`💰 Loaded ${tickets} tickets for user`);
             } else {
                 console.warn("User document not found, initializing with 0 tickets");
+                tickets = 0;
+                updateTickets();
             }
             renderInventory();
             applyTheme();
@@ -268,6 +271,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             inventory = [];
             equippedIcon = null;
             equippedTheme = null;
+            tickets = 0;
+            updateTickets();
         }
     });
 
@@ -359,18 +364,19 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     async function rollReward() {
-        if (tickets <= 0) {
-            alert("No tickets left – earn more by finishing study sessions!");
+        if (tickets < 5) {
+            alert("Not enough tickets! You need 5 tickets to roll. Earn more by answering questions correctly!");
             return null;
         }
 
-        tickets--;
+        tickets -= 5;
         updateTickets();
         if (currentUserId) {
             const userRef = doc(db, "Users", currentUserId);
-            const userData = (await getDoc(userRef)).data();
-            userData.points = tickets;
-            await updateDoc(userRef, userData);
+            await updateDoc(userRef, {
+                points: tickets
+            });
+            console.log(`🎟️ Spent 5 tickets. Remaining: ${tickets}`);
         }
 
         // Randomly choose between icon and theme (80% icon, 20% theme)
@@ -415,8 +421,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Click handler for roll
     rollBtn.addEventListener("click", async () => {
-        if (tickets <= 0) {
-            alert("No tickets left – earn more by finishing study sessions!");
+        if (tickets < 5) {
+            alert("Not enough tickets! You need 5 tickets to roll. Earn more by answering questions correctly!");
             return;
         }
 
