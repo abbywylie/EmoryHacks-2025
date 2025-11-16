@@ -43,7 +43,6 @@ export async function loadIndexPage() {
             const userInfoEl = document.getElementById("userInfo");
             if (userInfoEl) {
                 // Try to load equipped icon
-                let iconSrc = '/img/profile-btn.png';
                 try {
                     const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js");
                     const { db } = await import('./script.js');
@@ -54,13 +53,14 @@ export async function loadIndexPage() {
                         const equippedIconId = prefsSnap.data().equippedIcon;
                         iconSrc = `rewards/icons/${equippedIconId.replace('icon-', '')}.png`;
                     }
+
+                    const iconSrc = `./rewards/icons/${(await getDoc(doc(db,"Users",user.uid))).data().rewards.equippedIcon}.png` || '/img/profile-btn.png';
+                    userInfoEl.innerHTML = `
+                        <p class="right-aligned">Welcome, <strong>${user.displayName || user.email}</strong><input type="image" src="${iconSrc}" id="nav-profile-img" style="width:50px; height:50px; border-radius:50%; object-fit:cover;" onclick='window.location.replace("profile.html")'/></p>
+                    `;
                 } catch (error) {
                     console.error("Error loading equipped icon:", error);
                 }
-
-                userInfoEl.innerHTML = `
-                    <p class="right-aligned">Welcome, <strong>${user.displayName || user.email}</strong><input type="image" src="${iconSrc}" id="nav-profile-img" style="width:50px; height:50px; border-radius:50%; object-fit:cover;" onclick='window.location.replace("profile.html")'/></p>
-                `;
             }
 
             const signInEl = document.getElementById("signIn");
